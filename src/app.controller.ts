@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { finMind } from './api/financeIndex';
 
 @Controller()
 export class AppController {
@@ -8,5 +9,12 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('test')
+  async testing(): Promise<number> {
+    const result = await finMind.GovernmentBondsYield();
+    console.log(result['data']['data']);
+    return 200;
   }
 }
