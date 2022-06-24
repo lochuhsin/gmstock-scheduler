@@ -227,4 +227,3 @@ export namespace finMind {
     });
   }
 }
-

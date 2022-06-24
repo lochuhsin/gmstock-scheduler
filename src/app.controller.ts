@@ -1,6 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { finMind } from './api/financeIndex';
+import { finMind } from './api/finMind';
+import { twelvedata } from './api/twelvedata';
+import {rmdb} from './dao/rmdb'
 
 @Controller()
 export class AppController {
@@ -13,8 +15,9 @@ export class AppController {
 
   @Get('test')
   async testing(): Promise<number> {
-    const result = await finMind.GovernmentBondsYield();
-    console.log(result['data']['data']);
+    const test = new rmdb.postgres();
+    const data = await twelvedata.allStock();
+    test.bulkInsertStockList(data['data']['data']);
     return 200;
   }
 }
