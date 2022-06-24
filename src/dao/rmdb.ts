@@ -36,7 +36,6 @@ export namespace rmdb {
         ];
         arr.push(obj_arr);
       }
-
       const query = format(
         'INSERT INTO stocklist (symbol, name, currency, exchange, mic_code, country) VALUES %L',
         arr,
