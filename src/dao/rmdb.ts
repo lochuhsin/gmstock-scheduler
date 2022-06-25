@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import { rsp_stocks } from 'src/dto/third_party/twelve_data/stocks';
 const format = require('pg-format');
 import settings from '../config';
 
@@ -17,27 +18,24 @@ export namespace rmdb {
       });
     }
 
-    bulkInsertStockList(inputs: any): void {
-      const arr = [];
-      for (const obj of inputs) {
-        const obj_arr: string[] = [
-          obj['symbol'],
-          obj['name'],
-          obj['currency'],
-          obj['exchange'],
-          obj['mic_code'],
-          obj['country'],
-        ];
-        arr.push(obj_arr);
-      }
+    bulkInsertStockList(inputs: rsp_stocks[]): void {
+      const data = inputs.map((d) => [
+        d.symbol,
+        d.name,
+        d.currency,
+        d.exchange,
+        d.mic_code,
+        d.country,
+      ]);
       const query = format(
-        'INSERT INTO stocklist (symbol, name, currency, exchange, mic_code, country) VALUES %L',
-        arr,
+        'INSERT INTO stock_list (symbol, name, currency, exchange, mic_code, country) VALUES %L',
+        data,
       );
 
       this.client.query(query, (err, res) => {
-        if (err) throw err;
-        console.log(res);
+        if (err) {
+          console.log(res);
+        }
       });
     }
   }
