@@ -46,7 +46,7 @@ exports.up = function (db, callback) {
         mic_code: { type: 'string' },
         country: { type: 'string' },
       }),
-      db.createTable.bind(db, 'indice', {
+      db.createTable.bind(db, 'indices', {
         symbol: { type: 'string' },
         name: { type: 'string' },
         country: { type: 'string' },

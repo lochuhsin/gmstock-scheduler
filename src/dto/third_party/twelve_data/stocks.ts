@@ -17,7 +17,7 @@ export class rsp_forexpair {
 
 export class rsp_cryptocurrency {
   symbol: string;
-  available_exchange: string;
+  available_exchanges: string[];
   currency_base: string;
   currency_quote: string;
 }
@@ -31,7 +31,7 @@ export class rsp_etf {
   country: string;
 }
 
-export class rsp_indice {
+export class rsp_indices {
   symbol: string;
   name: string;
   country: string;
