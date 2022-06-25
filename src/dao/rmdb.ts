@@ -18,7 +18,7 @@ export namespace rmdb {
       });
     }
 
-    bulkInsertStockList(inputs: rsp_stocks[]): void {
+    bulkInsertStock(inputs: rsp_stocks[]): void {
       const data = inputs.map((d) => [
         d.symbol,
         d.name,

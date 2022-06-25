@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { twelve_base } from 'src/dto/third_party/twelve_data/base';
-import { rsp_stocks } from 'src/dto/third_party/twelve_data/stocks';
+import { rsp_stocks, rsp_forexpair, rsp_cryptocurrency, rsp_etf, rsp_indice } from 'src/dto/third_party/twelve_data/stocks';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace twelvedata {
@@ -18,29 +18,34 @@ export namespace twelvedata {
     const params = {
       country: 'Taiwan',
     };
-    var rsp = await axios.get<twelve_base<rsp_stocks[]>>(url, {
+    const rsp = await axios.get<twelve_base<rsp_stocks[]>>(url, {
       params: params,
     });
+    console.log(rsp);
     return rsp.data.data;
   }
 
-  export async function allForexPair() {
+  export async function allForexPair(): Promise<rsp_forexpair[]> {
     const url = 'https://api.twelvedata.com/forex_pairs';
-    return await axios.get(url);
+    const rsp = await axios.get<twelve_base<rsp_forexpair[]>>(url);
+    return rsp.data.data;
   }
 
-  export async function allCryptoCurrency() {
+  export async function allCryptoCurrency(): Promise<rsp_cryptocurrency[]> {
     const url = 'https://api.twelvedata.com/cryptocurrencies';
-    return await axios.get(url);
+    const rsp = await axios.get<twelve_base<rsp_cryptocurrency[]>>(url);
+    return rsp.data.data;
   }
 
-  export async function allETF() {
+  export async function allETF(): Promise<rsp_etf[]> {
     const url = 'https://api.twelvedata.com/etf';
-    return await axios.get(url);
+    const rsp = await axios.get<twelve_base<rsp_etf[]>>(url);
+    return rsp.data.data;
   }
 
-  export async function allIndices() {
+  export async function allIndices(): Promise<rsp_indice[]> {
     const url = 'https://api.twelvedata.com/indices';
-    return await axios.get(url);
+    const rsp = await axios.get<twelve_base<rsp_indice[]>>(url);
+    return rsp.data.data;
   }
 }
