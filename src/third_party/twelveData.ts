@@ -21,7 +21,6 @@ export namespace twelvedata {
     const rsp = await axios.get<twelve_base<rsp_stocks[]>>(url, {
       params: params,
     });
-    console.log(rsp);
     return rsp.data.data;
   }
 
