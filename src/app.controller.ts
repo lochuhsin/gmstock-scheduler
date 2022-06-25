@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { finMind } from './api/finMind';
 import { twelvedata } from './api/twelveData';
-import {rmdb} from './dao/rmdb'
+import { rmdb } from './dao/rmdb';
+import settings from './config';
 
 @Controller()
 export class AppController {
@@ -10,14 +10,14 @@ export class AppController {
 
   @Get()
   getHello(): string {
+    console.log(process.env.TEST);
     return this.appService.getHello();
   }
 
   @Get('test')
   async testing(): Promise<number> {
-    const test = new rmdb.postgres();
-    const data = await twelvedata.allStock();
-    test.bulkInsertStockList(data['data']['data']);
+    const db = new rmdb.postgres();
+    console.log(settings.postgres['port']);
     return 200;
   }
 }

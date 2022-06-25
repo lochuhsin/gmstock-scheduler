@@ -11,7 +11,7 @@ export namespace twelvedata {
     });
   }
 
-  export async function allStock() {
+  export async function allStockList() {
     const url = 'https://api.twelvedata.com/stocks';
     return await axios.get(url);
   }

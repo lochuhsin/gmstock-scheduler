@@ -1,19 +1,13 @@
 import { Client } from 'pg';
 const format = require('pg-format');
-// eslint-disable-next-line @typescript-eslint/no-namespace
+import settings from '../config';
+
 export namespace rmdb {
   export class postgres {
-    dbConfig = {
-      user: 'root',
-      password: 'root',
-      database: 'postgres',
-      host: 'localhost',
-      port: 5432,
-    };
-
     client = null;
+
     constructor() {
-      this.client = new Client(this.dbConfig);
+      this.client = new Client(settings.postgres);
       this.client.connect((err) => {
         if (err) {
           console.error('connection error', err.stack);
