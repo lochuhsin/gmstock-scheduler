@@ -13,7 +13,7 @@ export namespace twelvedata {
     });
   }
 
-  export async function allStock(): Promise<rsp_stocks[]> {
+  export async function allStockList(): Promise<rsp_stocks[]> {
     const url = 'https://api.twelvedata.com/stocks';
     const params = {
       country: 'Taiwan',
