@@ -37,13 +37,14 @@ export namespace rmdb {
         arr.push(obj_arr);
       }
       const query = format(
-        'INSERT INTO stocklist (symbol, name, currency, exchange, mic_code, country) VALUES %L',
+        'INSERT INTO stock_list (symbol, name, currency, exchange, mic_code, country) VALUES %L',
         arr,
       );
 
       this.client.query(query, (err, res) => {
-        if (err) throw err;
-        console.log(res);
+        if (err) {
+          console.log(res);
+        }
       });
     }
   }

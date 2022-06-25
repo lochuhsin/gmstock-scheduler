@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { finMind } from './api/finMind';
-import { twelvedata } from './api/twelveData';
+import { finMind } from './third_party/finMind';
+import { twelvedata } from './third_party/twelveData';
 import {rmdb} from './dao/rmdb'
 
 @Controller()

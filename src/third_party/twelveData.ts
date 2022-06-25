@@ -13,7 +13,10 @@ export namespace twelvedata {
 
   export async function allStock() {
     const url = 'https://api.twelvedata.com/stocks';
-    return await axios.get(url);
+    const params = {
+      country: 'Taiwan',
+    };
+    return await axios.get(url, { params: params });
   }
 
   export async function allForexPair() {
