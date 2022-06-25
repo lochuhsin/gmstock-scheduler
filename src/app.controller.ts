@@ -17,7 +17,7 @@ export class AppController {
   async testing(): Promise<number> {
     const test = new rmdb.postgres();
     const data = await twelvedata.allStock();
-    test.bulkInsertStockList(data['data']['data']);
+    test.bulkInsertStockList(data);
     return 200;
   }
 }
