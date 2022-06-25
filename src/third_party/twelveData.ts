@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { twelve_base } from 'src/dto/third_party/twelve_data/base';
-import { rsp_stocks, rsp_forexpair, rsp_cryptocurrency, rsp_etf, rsp_indice } from 'src/dto/third_party/twelve_data/stocks';
+import {
+  rsp_stocks,
+  rsp_forexpair,
+  rsp_cryptocurrency,
+  rsp_etf,
+  rsp_indices,
+} from 'src/dto/third_party/twelve_data/stocks';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace twelvedata {
@@ -13,7 +19,7 @@ export namespace twelvedata {
     });
   }
 
-  export async function allStockList(): Promise<rsp_stocks[]> {
+  export async function allStocks(): Promise<rsp_stocks[]> {
     const url = 'https://api.twelvedata.com/stocks';
     const params = {
       country: 'Taiwan',
@@ -42,9 +48,9 @@ export namespace twelvedata {
     return rsp.data.data;
   }
 
-  export async function allIndices(): Promise<rsp_indice[]> {
+  export async function allIndices(): Promise<rsp_indices[]> {
     const url = 'https://api.twelvedata.com/indices';
-    const rsp = await axios.get<twelve_base<rsp_indice[]>>(url);
+    const rsp = await axios.get<twelve_base<rsp_indices[]>>(url);
     return rsp.data.data;
   }
 }

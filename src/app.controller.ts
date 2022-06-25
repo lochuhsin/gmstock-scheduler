@@ -15,9 +15,9 @@ export class AppController {
 
   @Get('test')
   async testing(): Promise<number> {
-    //const db = new rmdb.postgres();
+    const db = new rmdb.postgres();
     const data = await twelvedata.allIndices();
-    console.log(data);
+    db.bulkInsertIndice(data);
     return 200;
   }
 }
