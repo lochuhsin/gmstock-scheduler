@@ -1,12 +1,11 @@
 import axios from 'axios';
+import settings from '../config';
 
-// for deeper insight of dataset https://finmindtrade.com/analysis/#/data/document
 // https://finmind.github.io/
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace finMind {
   const _URL = 'https://api.finmindtrade.com/api/v4/data?';
-  const _TOKEN =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyMi0wNi0yMyAyMDoxNzowMyIsInVzZXJfaWQiOiJsb2NodWhzaW4iLCJpcCI6IjExNC4xMzYuNTguMTE1In0.tWMyITWi1PXdSGZGFuE_RcrUKtLYcsrP3DHgnlhZ6oc';
+  const _TOKEN = settings.token['finMind'];
 
   export function testFunc() {
     console.log('hello world');

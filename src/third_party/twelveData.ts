@@ -1,4 +1,5 @@
 import axios from 'axios';
+import settings from '../config';
 import { twelve_base } from 'src/dto/third_party/twelve_data/base';
 import {
   rsp_stocks,
@@ -9,12 +10,12 @@ import {
 } from 'src/dto/third_party/twelve_data/stocks';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace twelvedata {
+export namespace twelveData {
   export async function testFunc() {
     const url = 'https://api.twelvedata.com/market_state';
     return await axios.get(url, {
       params: {
-        apikey: 'b0a59586047a49ac8b9cff87709499d7',
+        apikey: settings.token['twelveData'],
       },
     });
   }

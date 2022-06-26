@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { twelvedata } from "./third_party/twelveData";
+import { twelveData } from "./third_party/twelveData";
 import { rmdb } from './dao/rmdb';
 
 @Controller()
