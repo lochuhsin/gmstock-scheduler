@@ -8,7 +8,6 @@ export class TasksService {
 
   @Cron(CronExpression.EVERY_SECOND)
   async SampleJob() {
-    // this.logger.debug(await twelveData.allStocks());
     this.logger.debug('Called when the current second is 1');
   }
 }

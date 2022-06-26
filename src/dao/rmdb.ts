@@ -6,6 +6,7 @@ import {
   rsp_etf,
   rsp_indices,
 } from 'src/dto/third_party/twelve_data/stocks';
+import { util } from '../util/util';
 const format = require('pg-format');
 import settings from '../config';
 
@@ -25,6 +26,7 @@ export namespace rmdb {
     }
 
     bulkInsertStocks(inputs: rsp_stocks[]): void {
+      const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.name,
@@ -33,6 +35,8 @@ export namespace rmdb {
         d.mic_code,
         d.country,
         d.type,
+        currentTime,
+        currentTime,
       ]);
       const query = format(
         'INSERT INTO stocks (symbol, name, currency, exchange, mic_code, country, type) VALUES %L',
@@ -46,11 +50,14 @@ export namespace rmdb {
       });
     }
     bulkInsertForexPair(inputs: rsp_forexpair[]): void {
+      const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.currency_group,
         d.currency_base,
         d.currency_quote,
+        currentTime,
+        currentTime,
       ]);
       const query = format(
         'INSERT INTO forexpair (symbol, currency_group, currency_base, currency_quote) VALUES %L',
@@ -64,11 +71,14 @@ export namespace rmdb {
       });
     }
     bulkInsertCryptoCurrency(inputs: rsp_cryptocurrency[]): void {
+      const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.available_exchanges.toString(),
         d.currency_base,
         d.currency_quote,
+        currentTime,
+        currentTime,
       ]);
       const query = format(
         'INSERT INTO cryptocurrency (symbol, available_exchange, currency_base, currency_quote) VALUES %L',
@@ -82,6 +92,7 @@ export namespace rmdb {
       });
     }
     bulkInsertETF(inputs: rsp_etf[]): void {
+      const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.name,
@@ -89,6 +100,8 @@ export namespace rmdb {
         d.exchange,
         d.mic_code,
         d.country,
+        currentTime,
+        currentTime,
       ]);
       const query = format(
         'INSERT INTO etf (symbol, name, currency, exchange, mic_code, country) VALUES %L',
@@ -102,11 +115,14 @@ export namespace rmdb {
       });
     }
     bulkInsertIndice(inputs: rsp_indices[]): void {
+      const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.name,
         d.country,
         d.currency,
+        currentTime,
+        currentTime,
       ]);
       console.log(data);
       const query = format(
