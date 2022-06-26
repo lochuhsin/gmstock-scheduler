@@ -15,8 +15,14 @@ export class AppController {
   @Get('test')
   async testing(): Promise<number> {
     const db = new rmdb.postgres();
-    const data = await twelvedata.allIndices();
-    db.bulkInsertIndice(data);
+    // const data = await twelveData.allStocksTest();
+    // console.log(data);
+    const data = await twelveData.timeSeries(
+      'AAPL',
+      '2022-06-01',
+      '2022-06-20',
+    );
+    console.log(data);
     return 200;
   }
 }

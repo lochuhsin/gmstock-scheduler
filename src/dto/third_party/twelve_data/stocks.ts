@@ -37,3 +37,21 @@ export class rsp_indices {
   country: string;
   currency: string;
 }
+
+export class rsp_timeseries_meta {
+  symbol: string;
+  interval: string;
+  currency: string;
+  exchange_timezone: string;
+  exchange: string;
+  type: string;
+}
+
+export class rsp_timeseries_values {
+  datetime: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+}
