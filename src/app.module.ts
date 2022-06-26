@@ -12,3 +12,4 @@ import { initDataModule } from './service/initData.module';
 })
 
 export class AppModule {};
+

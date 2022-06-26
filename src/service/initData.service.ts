@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import { rmdb } from '../dao/rmdb';
 import { twelveData } from '../third_party/twelveData';
 import settings from '../config';
@@ -8,6 +8,7 @@ import { exec } from 'child_process';
 
 @Injectable()
 export class initDataService implements OnApplicationBootstrap {
+  logger = new Logger(initDataService.name);
   async onApplicationBootstrap(): Promise<void> {
     const scriptPath = settings.startScript['path'];
 
@@ -18,8 +19,13 @@ export class initDataService implements OnApplicationBootstrap {
     this.checkStartScript(scriptPath);
 
     // exec migration script
-    await this.runMigration(scriptPath);
-
+    const linux_liked_os = ['linux', 'darwin'];
+    if (linux_liked_os.includes(process.platform)) {
+      // exec migration script
+      await this.runMigration(scriptPath);
+    } else {
+      this.logger.log('Skip migration.');
+    }
     // fill up all Symbol list
     await this.fillSymbol();
 
@@ -70,7 +76,6 @@ export class initDataService implements OnApplicationBootstrap {
     });
   }
 }
-
 
 @Injectable()
 export class testService {
