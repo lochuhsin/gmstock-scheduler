@@ -1,5 +1,5 @@
 'use strict';
-const async = require("async");
+const async = require('async');
 let dbm;
 let type;
 let seed;
@@ -25,18 +25,24 @@ exports.up = function (db, callback) {
         mic_code: { type: 'string' },
         country: { type: 'string' },
         type: { type: 'string' },
+        latest_date: { type: 'string' },
+        oldest_date: { type: 'string' },
       }),
       db.createTable.bind(db, 'forexpair', {
         symbol: { type: 'string' },
         currency_group: { type: 'string' },
         currency_base: { type: 'string' },
         currency_quote: { type: 'string' },
+        latest_date: { type: 'string' },
+        oldest_date: { type: 'string' },
       }),
       db.createTable.bind(db, 'cryptocurrency', {
         symbol: { type: 'string' },
         available_exchange: { type: 'string' },
         currency_base: { type: 'string' },
         currency_quote: { type: 'string' },
+        latest_date: { type: 'string' },
+        oldest_date: { type: 'string' },
       }),
       db.createTable.bind(db, 'etf', {
         symbol: { type: 'string' },
@@ -45,12 +51,16 @@ exports.up = function (db, callback) {
         exchange: { type: 'string' },
         mic_code: { type: 'string' },
         country: { type: 'string' },
+        latest_date: { type: 'string' },
+        oldest_date: { type: 'string' },
       }),
       db.createTable.bind(db, 'indices', {
         symbol: { type: 'string' },
         name: { type: 'string' },
         country: { type: 'string' },
         currency: { type: 'string' },
+        latest_date: { type: 'string' },
+        oldest_date: { type: 'string' },
       }),
     ],
     callback,
