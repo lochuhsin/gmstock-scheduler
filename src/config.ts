@@ -4,6 +4,10 @@ interface config {
 
 const settings: config = {};
 
+settings.server = {
+  port: 3000,
+};
+
 settings.postgres = {
   user: 'root',
   password: 'root',
