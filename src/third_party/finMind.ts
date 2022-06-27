@@ -3,7 +3,7 @@ import settings from '../config';
 
 // https://finmind.github.io/
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace finMind {
+export namespace FinMind {
   const _URL = 'https://api.finmindtrade.com/api/v4/data?';
   const _TOKEN = settings.token['finMind'];
 

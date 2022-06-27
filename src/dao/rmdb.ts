@@ -37,7 +37,7 @@ export namespace rmdb {
       return result['rows'].map((obj) => obj['symbol']);
     }
 
-    bulkInsertStocks(inputs: rsp_stocks[]): void {
+    async bulkInsertStocks(inputs: rsp_stocks[]): Promise<void> {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
@@ -55,13 +55,13 @@ export namespace rmdb {
         'INSERT INTO stocks (symbol, name, currency, exchange, mic_code, country, type, latest_date, oldest_date, ishistorydatafinished) VALUES %L',
         data,
       );
-      this.client.query(query, (err, res) => {
+      await this.client.query(query, (err, res) => {
         if (err) {
           console.log(res);
         }
       });
     }
-    bulkInsertForexPair(inputs: rsp_forexpair[]): void {
+    async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<void> {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
@@ -77,13 +77,13 @@ export namespace rmdb {
         data,
       );
 
-      this.client.query(query, (err, res) => {
+      await this.client.query(query, (err, res) => {
         if (err) {
           console.log(res);
         }
       });
     }
-    bulkInsertCryptoCurrency(inputs: rsp_cryptocurrency[]): void {
+    async bulkInsertCryptoCurrency(inputs: rsp_cryptocurrency[]): Promise<void> {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
@@ -99,13 +99,13 @@ export namespace rmdb {
         data,
       );
 
-      this.client.query(query, (err, res) => {
+      await this.client.query(query, (err, res) => {
         if (err) {
           console.log(res);
         }
       });
     }
-    bulkInsertETF(inputs: rsp_etf[]): void {
+    async bulkInsertETF(inputs: rsp_etf[]): Promise<void> {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
@@ -123,13 +123,13 @@ export namespace rmdb {
         data,
       );
 
-      this.client.query(query, (err, res) => {
+      await this.client.query(query, (err, res) => {
         if (err) {
           console.log(res);
         }
       });
     }
-    bulkInsertIndice(inputs: rsp_indices[]): void {
+    async bulkInsertIndice(inputs: rsp_indices[]): Promise<void> {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
@@ -145,7 +145,7 @@ export namespace rmdb {
         data,
       );
 
-      this.client.query(query, (err, res) => {
+      await this.client.query(query, (err, res) => {
         if (err) {
           console.log(res);
         }

@@ -12,7 +12,7 @@ import {
 } from 'src/dto/third_party/twelve_data/stocks';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace twelveData {
+export namespace TwelveData {
   export async function testFunc() {
     const url = 'https://api.twelvedata.com/market_state';
     return await axios.get(url, {

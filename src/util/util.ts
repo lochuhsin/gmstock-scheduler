@@ -22,4 +22,30 @@ export namespace util {
 
     return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
   }
+
+  export class queue<T> {
+    private readonly container: T[];
+    constructor(iterable: Iterable<T> = []) {
+      this.container = [];
+      for (const obj of iterable) {
+        this.container.push(obj);
+      }
+    }
+    pop(): T | null {
+      if (this.container.length > 0) {
+        return this.container.shift();
+      }
+      return null;
+    }
+
+    peek(): T | null {
+      if (this.container.length) {
+        return this.container[this.container.length - 1];
+      }
+      return null;
+    }
+    push_back(obj: T): void {
+      this.container.push(obj);
+    }
+  }
 }
