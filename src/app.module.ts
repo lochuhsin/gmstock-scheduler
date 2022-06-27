@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './tasks/task-test.module';
-import { InitDataModule } from './service/initDataModule';
+import { InitDataModule } from './service/initData.module';
 import { UpdateModule } from './service/update.module';
 import { UpdateService } from './service/update.service';
 
@@ -19,4 +19,3 @@ import { UpdateService } from './service/update.service';
 })
 
 export class AppModule {}
-

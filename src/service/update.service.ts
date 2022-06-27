@@ -8,7 +8,7 @@ export class UpdateService {
   private readonly symbolQueue: util.queue<string>;
   private readonly pgDatabase;
   constructor() {
-    this.symbolQueue = new util.queue();
+    this.symbolQueue = new util.queue<string>();
     this.pgDatabase = new rmdb.postgres();
   }
 

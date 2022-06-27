@@ -99,8 +99,8 @@ export class initDataService implements OnApplicationBootstrap {
 }
 
 export class symbolService {
-  logger = new Logger(initDataService.name);
-  pgDatabase = new rmdb.postgres();
+  private readonly logger = new Logger(initDataService.name);
+  private readonly pgDatabase = new rmdb.postgres();
 
   async getInitStocks(): Promise<void> {
     const row_count = await this.pgDatabase.getRowCount('stocks');
