@@ -24,13 +24,14 @@ export namespace util {
   }
 
   export class queue<T> {
-    private readonly container: T[];
+    private container: T[];
     constructor(iterable: Iterable<T> = []) {
       this.container = [];
       for (const obj of iterable) {
         this.container.push(obj);
       }
     }
+
     pop(): T | null {
       if (this.container.length > 0) {
         return this.container.shift();
@@ -39,13 +40,30 @@ export namespace util {
     }
 
     peek(): T | null {
-      if (this.container.length) {
+      if (this.container.length > 0) {
         return this.container[this.container.length - 1];
       }
       return null;
     }
+
     push_back(obj: T): void {
       this.container.push(obj);
+    }
+
+    clear(): void {
+      this.container = [];
+    }
+
+    getRestElements(): T[] | null {
+      const elements = [];
+      for (const obj of this.container) {
+        elements.push(obj);
+      }
+      return elements;
+    }
+
+    getSize(): number {
+      return this.container.length;
     }
   }
 }
