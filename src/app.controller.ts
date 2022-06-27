@@ -1,11 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { twelveData } from './third_party/twelveData';
+import { TwelveData } from './third_party/twelveData';
 import { rmdb } from './dao/rmdb';
+import { UpdateService } from './service/update.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService, private readonly updateService: UpdateService) {}
 
   @Get()
   getHello(): string {
@@ -14,15 +15,10 @@ export class AppController {
 
   @Get('test')
   async testing(): Promise<number> {
-    const db = new rmdb.postgres();
-    // const data = await twelveData.allStocksTest();
-    // console.log(data);
-    const data = await twelveData.timeSeries(
-      'AAPL',
-      '2022-06-01',
-      '2022-06-20',
-    );
-    console.log(data);
+    // const db = new rmdb.postgres();
+    // const test = await db.getSymbol('stocks');
+    // console.log(test);
+    this.updateService.initSymbolQueue();
     return 200;
   }
 }
