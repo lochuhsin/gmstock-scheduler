@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { parse } from 'csv-parse/sync';
 import settings from '../config';
 import { twelve_base, twelve_timeseries_base } from 'src/dto/third_party/twelve_data/base';
 import {
@@ -57,14 +58,14 @@ export namespace TwelveData {
     return rsp.data.data;
   }
 
-  //https://twelvedata.com/docs#time-series
+  // https://twelvedata.com/docs#time-series
   // symbol: database symbol column
   // startDate, endDate format: '2000-01-01' or '2000-01-01 12:60:60'
   export async function timeSeries(
     symbol: string,
     startDate: string,
     endDate: string,
-  ): Promise<[rsp_timeseries_meta, rsp_timeseries_values[]]> {
+  ): Promise<string[][]> {
     const url = 'https://api.twelvedata.com/time_series';
     const params = {
       apikey: settings.token['twelveData'],
@@ -73,12 +74,16 @@ export namespace TwelveData {
       start_date: startDate,
       end_date: endDate,
       timezone: 'utc',
+      format: 'csv',
     };
 
-    const rsp = await axios.get<
-      twelve_timeseries_base<rsp_timeseries_meta, rsp_timeseries_values[]>>(url, {
+    const rsp = await axios.get(url, {
       params: params,
     });
-    return [rsp.data.meta, rsp.data.values];
+
+    return parse(rsp['data'], {
+      delimiter: ';',
+      skip_empty_lines: true,
+    });
   }
 }
