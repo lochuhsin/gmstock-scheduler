@@ -1,6 +1,6 @@
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import { rmdb } from '../dao/rmdb';
-import { twelveData } from '../third_party/twelveData';
+import { TwelveData } from '../third_party/twelveData';
 import { exec } from 'child_process';
 import settings from '../config';
 import { Client } from 'pg';
@@ -107,7 +107,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('stocks data exists, skip');
     } else {
-      const data = await twelveData.allStocks();
+      const data = await TwelveData.allStocks();
       await this.pgDatabase.bulkInsertStocks(data);
       this.logger.log('stocks symbol initialized.');
     }
@@ -118,7 +118,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('forexpair data exists, skip');
     } else {
-      const data = await twelveData.allForexPair();
+      const data = await TwelveData.allForexPair();
       await this.pgDatabase.bulkInsertForexPair(data);
       this.logger.log('forexpair symbol initialized.');
     }
@@ -129,7 +129,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('cryptocurrency data exists, skip');
     } else {
-      const data = await twelveData.allCryptoCurrency();
+      const data = await TwelveData.allCryptoCurrency();
       await this.pgDatabase.bulkInsertCryptoCurrency(data);
       this.logger.log('cryptocurrency symbol initialized.');
     }
@@ -140,7 +140,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('etf data exists, skip');
     } else {
-      const data = await twelveData.allETF();
+      const data = await TwelveData.allETF();
       await this.pgDatabase.bulkInsertETF(data);
       this.logger.log('etf symbol initialized.');
     }
@@ -151,8 +151,8 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('indice data exists, skip');
     } else {
-      const data = await twelveData.allIndices();
-      this.pgDatabase.bulkInsertIndice(data);
+      const data = await TwelveData.allIndices();
+      await this.pgDatabase.bulkInsertIndice(data);
       this.logger.log('indice symbol initialized.');
     }
   }

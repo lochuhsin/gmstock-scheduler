@@ -4,4 +4,4 @@ import { initDataService } from './initData.service';
 @Module({
   providers: [initDataService],
 })
-export class initDataModule {}
+export class InitDataModule {}
