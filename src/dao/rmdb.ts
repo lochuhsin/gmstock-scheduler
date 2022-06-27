@@ -31,6 +31,12 @@ export namespace rmdb {
       return parseInt(row_count);
     }
 
+    async getSymbol(tableName: string): Promise<string[]> {
+      const query = `select symbol from ${tableName}`;
+      const result = await this.client.query(query);
+      return result['rows'].map((obj) => obj['symbol']);
+    }
+
     bulkInsertStocks(inputs: rsp_stocks[]): void {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
