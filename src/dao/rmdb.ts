@@ -83,7 +83,9 @@ export namespace rmdb {
         }
       });
     }
-    async bulkInsertCryptoCurrency(inputs: rsp_cryptocurrency[]): Promise<void> {
+    async bulkInsertCryptoCurrency(
+      inputs: rsp_cryptocurrency[],
+    ): Promise<void> {
       const currentTime = util.getCurrentTime();
       const data = inputs.map((d) => [
         d.symbol,
@@ -146,6 +148,33 @@ export namespace rmdb {
       );
 
       await this.client.query(query, (err, res) => {
+        if (err) {
+          console.log(res);
+        }
+      });
+    }
+
+    // input data format : symbol, datetime, open, high, low, close, volume
+    bulkInsertTableData(tableName: string, data: string[][]) {
+      const query = format(
+        `INSERT INTO ${tableName} (symbol, datetime, open, high, low, close, volume) VALUES %L`,
+        data,
+      );
+      this.client.query(query, (err, res) => {
+        if (err) {
+          console.log(res);
+        }
+      });
+    }
+
+    // input data format : symbol, datetime, open, high, low, close, volume
+    insertTableData(tableName: string, data: string[]) {
+      const d = [data];
+      const query = format(
+        `INSERT INTO ${tableName} (symbol, datetime, open, high, low, close, volume) VALUES %L`,
+        d,
+      );
+      this.client.query(query, (err, res) => {
         if (err) {
           console.log(res);
         }

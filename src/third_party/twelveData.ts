@@ -1,15 +1,13 @@
 import axios from 'axios';
 import { parse } from 'csv-parse/sync';
 import settings from '../config';
-import { twelve_base, twelve_timeseries_base } from 'src/dto/third_party/twelve_data/base';
+import { twelve_base } from 'src/dto/third_party/twelve_data/base';
 import {
   rsp_stocks,
   rsp_forexpair,
   rsp_cryptocurrency,
   rsp_etf,
   rsp_indices,
-  rsp_timeseries_meta,
-  rsp_timeseries_values,
 } from 'src/dto/third_party/twelve_data/stocks';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -85,5 +83,30 @@ export namespace TwelveData {
       delimiter: ';',
       skip_empty_lines: true,
     });
+  }
+
+  // only return specific columns, there are more data originally
+  // https://twelvedata.com/docs#quote
+  export async function latest(symbol: string) {
+    const url = 'https://api.twelvedata.com/quote';
+    const params = {
+      apikey: settings.token['twelveData'],
+      symbol: symbol,
+      interval: '1day',
+    };
+
+    const rsp = await axios.get(url, {
+      params: params,
+    });
+
+    const data = rsp['data'];
+    return [
+      data['datetime'],
+      data['open'],
+      data['high'],
+      data['low'],
+      data['close'],
+      data['volume'],
+    ];
   }
 }
