@@ -33,17 +33,6 @@ export namespace twelveData {
     return rsp.data.data;
   }
 
-  export async function allStocksTest() {
-    const url = 'https://api.twelvedata.com/stocks';
-    const params = {
-      country: 'Taiwan',
-    };
-    const rsp = await axios.get(url, {
-      params: params,
-    });
-    return rsp;
-  }
-
   export async function allForexPair(): Promise<rsp_forexpair[]> {
     const url = 'https://api.twelvedata.com/forex_pairs';
     const rsp = await axios.get<twelve_base<rsp_forexpair[]>>(url);

@@ -27,6 +27,7 @@ exports.up = function (db, callback) {
         type: { type: 'string' },
         latest_date: { type: 'string' },
         oldest_date: { type: 'string' },
+        ishistorydatafinished: { type: 'boolean' },
       }),
       db.createTable.bind(db, 'forexpair', {
         symbol: { type: 'string' },
@@ -35,6 +36,7 @@ exports.up = function (db, callback) {
         currency_quote: { type: 'string' },
         latest_date: { type: 'string' },
         oldest_date: { type: 'string' },
+        ishistorydatafinished: { type: 'boolean' },
       }),
       db.createTable.bind(db, 'cryptocurrency', {
         symbol: { type: 'string' },
@@ -43,6 +45,7 @@ exports.up = function (db, callback) {
         currency_quote: { type: 'string' },
         latest_date: { type: 'string' },
         oldest_date: { type: 'string' },
+        ishistorydatafinished: { type: 'boolean' },
       }),
       db.createTable.bind(db, 'etf', {
         symbol: { type: 'string' },
@@ -53,6 +56,7 @@ exports.up = function (db, callback) {
         country: { type: 'string' },
         latest_date: { type: 'string' },
         oldest_date: { type: 'string' },
+        ishistorydatafinished: { type: 'boolean' },
       }),
       db.createTable.bind(db, 'indices', {
         symbol: { type: 'string' },
@@ -61,6 +65,7 @@ exports.up = function (db, callback) {
         currency: { type: 'string' },
         latest_date: { type: 'string' },
         oldest_date: { type: 'string' },
+        ishistorydatafinished: { type: 'boolean' },
       }),
     ],
     callback,
