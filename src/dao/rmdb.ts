@@ -9,6 +9,7 @@ import {
 import { util } from '../util/util';
 const format = require('pg-format');
 import settings from '../config';
+import { db_rsp_symboltask } from '../dto/database/dbresponse';
 
 export namespace rmdb {
   export class postgres {
@@ -31,10 +32,17 @@ export namespace rmdb {
       return parseInt(row_count);
     }
 
-    async getSymbol(tableName: string): Promise<string[]> {
-      const query = `select symbol from ${tableName}`;
+    async getSymbol(tableName: string): Promise<db_rsp_symboltask[]> {
+      const query = `select symbol, latest_date, oldest_date, ishistorydatafinished from ${tableName}`;
       const result = await this.client.query(query);
-      return result['rows'].map((obj) => obj['symbol']);
+      return result['rows'].map((obj) => {
+        const rsp_obj = new db_rsp_symboltask();
+        rsp_obj.symbol = obj[0];
+        rsp_obj.latest_date = obj[1];
+        rsp_obj.oldest_date = obj[2];
+        rsp_obj.ishistorydatafinished = obj[3];
+        return rsp_obj;
+      });
     }
 
     async bulkInsertStocks(inputs: rsp_stocks[]): Promise<void> {
