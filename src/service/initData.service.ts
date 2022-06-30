@@ -1,4 +1,4 @@
-import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { rmdb } from '../dao/rmdb';
 import { TwelveData } from '../third_party/twelveData';
 import { exec } from 'child_process';
@@ -8,10 +8,10 @@ const fs = require('fs');
 import { util } from '../util/util';
 
 @Injectable()
-export class initDataService implements OnApplicationBootstrap {
+export class initDataService implements OnModuleInit {
   logger = new Logger(initDataService.name);
 
-  async onApplicationBootstrap(): Promise<void> {
+  async onModuleInit(): Promise<void> {
     const scriptPath = settings.startScript['path'];
 
     // test postgres database connection
@@ -38,21 +38,17 @@ export class initDataService implements OnApplicationBootstrap {
   async fillSymbol(): Promise<void> {
     const waitTime = 1000; // ms
     const symbol = new symbolService();
-
-    await symbol.getInitStocks();
-    await util.sleep(waitTime);
-
-    await symbol.getInitForexPair();
-    await util.sleep(waitTime);
-
-    await symbol.getInitCryptoCurrency();
-    await util.sleep(waitTime);
-
-    await symbol.getInitETF();
-    await util.sleep(waitTime);
-
-    await symbol.getInitIndice();
-    await util.sleep(waitTime);
+    const func_arr = [
+      symbol.getInitStocks.bind(symbol),
+      symbol.getInitForexPair.bind(symbol),
+      symbol.getInitCryptoCurrency.bind(symbol),
+      symbol.getInitETF.bind(symbol),
+      symbol.getInitIndice.bind(symbol),
+    ];
+    for (const func of func_arr) {
+      await func();
+      await util.sleep(waitTime);
+    }
   }
 
   async testDBConnection(): Promise<string> {
@@ -99,7 +95,7 @@ export class initDataService implements OnApplicationBootstrap {
 }
 
 export class symbolService {
-  private readonly logger = new Logger(initDataService.name);
+  public readonly logger = new Logger(initDataService.name);
   private readonly pgDatabase = new rmdb.postgres();
 
   async getInitStocks(): Promise<void> {

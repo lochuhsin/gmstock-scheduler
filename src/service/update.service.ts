@@ -35,6 +35,7 @@ export class UpdateService {
   constructor() {
     this.historyTaskQue = new util.queue<db_rsp_symboltask>();
     this.dailyTaskQue = new util.queue<db_rsp_symboltask>();
+    this.updateTaskQue = new util.queue<db_rsp_symboltask>();
   }
 
   async initSymbolTasks(): Promise<void> {
@@ -96,7 +97,6 @@ export class UpdateService {
   }
 
   private async runDaily() {
-    // Run update
     const task: db_rsp_symboltask = this.dailyTaskQue.pop();
     const symbol = task.symbol;
     try {
@@ -115,6 +115,7 @@ export class UpdateService {
       result = await TwelveData.timeSeries(task.symbol, start_date, end_date);
     } catch (e) {
       this.logger.error(`task failed with error: ${e}`);
+      this.errorTaskQue.push([task, TaskType.history]);
       return -1;
     }
   }
