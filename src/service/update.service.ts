@@ -82,7 +82,11 @@ export class UpdateService {
       );
     } catch (e) {
       this.logger.warn(`Symbol ${task.symbol} update failed`);
+      this.logger.warn(e.message);
       this.errorTaskQue.push(task);
+    }
+    if (result == null) {
+      // handle situation of no data
     }
     result.shift(); // remove the first element since it is column name
     await this.pgDatabase.bulkInsertTableData(task.table_name, result);
@@ -106,12 +110,15 @@ export class UpdateService {
     let result: string[][];
     try {
       result = await TwelveData.timeSeries(task.symbol, start_date, end_date);
+      if(result == null){
+        // handle situation of no data
+      }
     } catch (e) {
       this.logger.error(`task failed with error: ${e}`);
       return -1;
     }
   }
-  
+
   private async fillSymbolTasks() {
     for (const table_name of this.tableList) {
       const result: db_rsp_symboltask[] = await this.pgDatabase.getSymbolTask(
