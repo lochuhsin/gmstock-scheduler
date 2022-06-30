@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { parse } from 'csv-parse/sync';
 import settings from '../config';
-import { twelve_base } from 'src/dto/third_party/twelve_data/base';
+import { failed_obj, twelve_base } from 'src/dto/third_party/twelve_data/base';
 import {
   rsp_stocks,
   rsp_forexpair,
@@ -75,11 +75,20 @@ export namespace TwelveData {
       format: 'csv',
     };
 
-    const rsp = await axios.get(url, {
+    const rsp = await axios.get<string>(url, {
       params: params,
     });
+    var text = rsp.data;
+    if (text.includes('code')) {
+      var data: twelve_base<failed_obj> = JSON.parse(text);
+      if (data.code == 400) {
+        return null;
+      } else {
+        throw new Error(data.message);
+      }
+    }
 
-    return parse(rsp['data'], {
+    return parse(text, {
       delimiter: ';',
       skip_empty_lines: true,
     });
