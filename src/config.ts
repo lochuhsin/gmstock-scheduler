@@ -4,6 +4,8 @@ interface config {
 
 const settings: config = {};
 
+settings.api = { apicount: 44 * 60 * 24, historyinterval: 4500 };
+
 settings.startScript = { path: './startScript.sh' };
 
 settings.token = {

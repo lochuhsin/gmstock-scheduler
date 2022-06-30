@@ -11,6 +11,7 @@ const format = require('pg-format');
 import settings from '../config';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace rmdb {
   export class postgres {
     client = null;
@@ -32,21 +33,17 @@ export namespace rmdb {
       return parseInt(row_count);
     }
 
-    async getSymbol(tableName: string): Promise<db_rsp_symboltask[]> {
+    async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
       const query = `select symbol, latest_date, oldest_date, ishistorydatafinished from ${tableName}`;
       const result = await this.client.query(query);
       return result['rows'].map((obj) => {
-        const rsp_obj = new db_rsp_symboltask();
-        rsp_obj.symbol = obj[0];
-        rsp_obj.latest_date = obj[1];
-        rsp_obj.oldest_date = obj[2];
-        rsp_obj.ishistorydatafinished = obj[3];
-        return rsp_obj;
+        obj.tableName = tableName;
+        return obj;
       });
     }
 
     async bulkInsertStocks(inputs: rsp_stocks[]): Promise<void> {
-      const currentTime = util.getCurrentTime();
+      const currentTime = util.getCurrentDateTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.name,
@@ -70,7 +67,7 @@ export namespace rmdb {
       });
     }
     async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<void> {
-      const currentTime = util.getCurrentTime();
+      const currentTime = util.getCurrentDateTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.currency_group,
@@ -94,7 +91,7 @@ export namespace rmdb {
     async bulkInsertCryptoCurrency(
       inputs: rsp_cryptocurrency[],
     ): Promise<void> {
-      const currentTime = util.getCurrentTime();
+      const currentTime = util.getCurrentDateTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.available_exchanges.toString(),
@@ -116,7 +113,7 @@ export namespace rmdb {
       });
     }
     async bulkInsertETF(inputs: rsp_etf[]): Promise<void> {
-      const currentTime = util.getCurrentTime();
+      const currentTime = util.getCurrentDateTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.name,
@@ -140,7 +137,7 @@ export namespace rmdb {
       });
     }
     async bulkInsertIndice(inputs: rsp_indices[]): Promise<void> {
-      const currentTime = util.getCurrentTime();
+      const currentTime = util.getCurrentDateTime();
       const data = inputs.map((d) => [
         d.symbol,
         d.name,

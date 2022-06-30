@@ -3,4 +3,5 @@ export class db_rsp_symboltask {
   latest_date: string;
   oldest_date: string;
   ishistorydatafinished: string;
+  table_name: string;
 }
