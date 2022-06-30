@@ -5,13 +5,20 @@ import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import { TwelveData } from '../third_party/twelveData';
 import settings from '../config';
 
+enum TaskType {
+  daily,
+  update,
+  history,
+}
+
 @Injectable()
 export class UpdateService {
+
   private readonly logger = new Logger(UpdateService.name);
   private readonly updateTaskQue: util.queue<db_rsp_symboltask>;
   private readonly dailyTaskQue: util.queue<db_rsp_symboltask>;
   private readonly historyTaskQue: util.queue<db_rsp_symboltask>;
-  private readonly errorTaskQue: util.queue<db_rsp_symboltask>;
+  private readonly errorTaskQue: util.queue<[db_rsp_symboltask, TaskType]>;
 
   private leftAPICount = settings.api['apicount'];
   private readonly historyInterval = settings.api['historyInterval']; //day
@@ -82,7 +89,7 @@ export class UpdateService {
       );
     } catch (e) {
       this.logger.warn(`Symbol ${task.symbol} update failed`);
-      this.errorTaskQue.push(task);
+      this.errorTaskQue.push([task, TaskType.update]);
     }
     result.shift(); // remove the first element since it is column name
     await this.pgDatabase.bulkInsertTableData(task.table_name, result);
@@ -97,7 +104,7 @@ export class UpdateService {
       this.pgDatabase.insertTableData(task.table_name, result);
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
-      this.errorTaskQue.push(task);
+      this.errorTaskQue.push([task, TaskType.daily]);
     }
   }
 
@@ -111,7 +118,7 @@ export class UpdateService {
       return -1;
     }
   }
-  
+
   private async fillSymbolTasks() {
     for (const table_name of this.tableList) {
       const result: db_rsp_symboltask[] = await this.pgDatabase.getSymbolTask(
