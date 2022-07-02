@@ -6,6 +6,7 @@ import { TasksModule } from './tasks/task-test.module';
 import { InitDataModule } from './service/initData.module';
 import { UpdateModule } from './service/update.module';
 import { UpdateService } from './service/update.service';
+import { PrismaClient } from '@prisma/client';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { UpdateService } from './service/update.service';
     UpdateModule,
   ],
   controllers: [AppController],
-  providers: [AppService, UpdateService],
+  providers: [AppService, UpdateService, PrismaClient],
 })
 
 export class AppModule {}

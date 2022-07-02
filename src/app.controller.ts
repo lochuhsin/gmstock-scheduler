@@ -18,7 +18,7 @@ export class AppController {
     // const db = new rmdb.postgres();
     // const test = await db.getSymbol('stocks');
     // console.log(test);
-    this.updateService.initSymbolQueue();
+    // this.updateService.initSymbolQueue();
     return 200;
   }
 }
