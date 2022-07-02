@@ -47,15 +47,7 @@ export class UpdateService {
     if (this.leftAPICount > 0) {
       //Run history
       if (this.historyTaskQue.getSize() > 0) {
-        const task: db_rsp_symboltask = this.historyTaskQue.peek();
-        const end_date = task.oldest_date;
-        const start_date = util.modifyDateTimeWithDay(
-          end_date,
-          -this.historyInterval, // go back this amount of days
-          // not finished yet
-        );
-
-        await this.runHistory(task, start_date, end_date); // finished
+        await this.runHistory(); // finished
         this.leftAPICount--;
       }
 
@@ -74,14 +66,22 @@ export class UpdateService {
   }
 
   // not finished
-  private async runHistory(
-    task: db_rsp_symboltask,
-    start_date,
-    end_date,
-  ): Promise<void> {
+  private async runHistory(): Promise<void> {
+    const task: db_rsp_symboltask = this.historyTaskQue.pop();
+    const endDate = task.oldest_date;
+    const copyDate = new Date(endDate.valueOf());
+    copyDate.setDate(copyDate.getDate() - this.historyInterval);
+
+    const endDateString = util.convertDateToDateString(endDate);
+    const startDateString = util.convertDateToDateString(copyDate);
+
     let result: string[][];
     try {
-      result = await TwelveData.timeSeries(task.symbol, start_date, end_date);
+      result = await TwelveData.timeSeries(
+        task.symbol,
+        startDateString,
+        endDateString,
+      );
     } catch (e) {
       this.logger.error(`task failed with error: ${e}`);
       this.errorTaskQue.push([task, TaskType.history]);
@@ -94,8 +94,17 @@ export class UpdateService {
         true,
       );
     } else {
+      result.shift(); // remove columns
       await this.rmdbService.bulkInsertTableData(task.table_name, result);
-      // update oldest date from data
+      const oldestDate: Date = await this.rmdbService.getSymbolOldestDate(
+        task.table_name,
+        task.symbol,
+      );
+      await this.rmdbService.updateOldestDate(
+        task.table_name,
+        task.id,
+        oldestDate,
+      );
     }
   }
 
@@ -104,27 +113,32 @@ export class UpdateService {
     const task: db_rsp_symboltask = this.updateTaskQue.pop();
     let result: string[][];
     try {
-      const updateDateTime = util.modifyDateTimeWithDay(
-        util.getCurrentDateTime(),
-        -1,
-      );
-      result = await TwelveData.timeSeries(
-        task.symbol,
-        task.latest_date,
-        updateDateTime,
-      );
+      const updateDateTime: Date = new Date();
+
+      const endDate = util.convertDateToDateString(updateDateTime);
+      const startDate = util.convertDateToDateString(task.latest_date);
+
+      result = await TwelveData.timeSeries(task.symbol, startDate, endDate);
     } catch (e) {
-      this.logger.warn(`Symbol ${task.symbol} update failed`);
-      this.logger.warn(e.message);
+      this.logger.warn(
+        `Symbol ${task.symbol} update failed, error ${e.message}`,
+      );
       this.errorTaskQue.push([task, TaskType.update]);
     }
-    if (result == null) {
-      // handle situation of no data
+
+    if (result != null) {
+      result.shift(); // remove the first element since it is column name
+      await this.rmdbService.bulkInsertTableData(task.table_name, result);
+      const latestDate = await this.rmdbService.getSymbolLatestDate(
+        task.table_name,
+        task.symbol,
+      );
+      await this.rmdbService.updateLatestDate(
+        task.table_name,
+        task.id,
+        latestDate,
+      );
     }
-    result.shift(); // remove the first element since it is column name
-    await this.rmdbService.bulkInsertTableData(task.table_name, result);
-    // update latest datetime
-    //
   }
 
   private async runDaily() {
@@ -132,7 +146,7 @@ export class UpdateService {
     const symbol = task.symbol;
     try {
       const result = await TwelveData.latest(symbol);
-      this.rmdbService.insertTableData(task.table_name, result);
+      await this.rmdbService.insertTableData(task.table_name, result);
       const datetime: Date = new Date(result[0]);
       await this.rmdbService.updateLatestDate(
         task.table_name,
@@ -164,9 +178,12 @@ export class UpdateService {
     }
   }
 
-  private static isUpdated(date: string): boolean {
-    const currentDate = util.getCurrentDate();
-    const latestDate = util.modifyDateWithDay(currentDate, -1);
-    return date == latestDate;
+  private static isUpdated(date: Date): boolean {
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - 1);
+    return (
+      util.convertDateToDateString(date) ==
+      util.convertDateToDateString(currentDate)
+    );
   }
 }

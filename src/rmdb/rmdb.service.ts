@@ -44,6 +44,27 @@ export class RmdbService {
     });
   }
 
+  async getSymbolOldestDate(tableName: string, symbol: string): Promise<Date> {
+    const dataTable = tableName + 'data';
+    const query = `select record_date_time from ${dataTable}
+                   where symbol = ${symbol}
+                   order by record_date_time asc
+                   limit 1;`;
+    const res = await this.client.query(query);
+    return new Date(res['rows'][0]['record_date_time']);
+  }
+
+  async getSymbolLatestDate(tableName: string, symbol: string): Promise<Date> {
+    const dataTable = tableName + 'data';
+    const query = `select record_date_time from ${dataTable}
+                   where symbol = ${symbol}
+                   order by record_date_time desc
+                   limit 1;`;
+    const res = await this.client.query(query);
+    return new Date(res['rows'][0]['record_date_time']);
+  }
+
+
   async updateLatestDate(tableName: string, id: number, date: Date) {
     return await this.prisma[tableName]
       .update({
