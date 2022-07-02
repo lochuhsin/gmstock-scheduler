@@ -70,24 +70,6 @@ export namespace util {
     return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
   }
 
-  export function getUtlDateTime(): string {
-    const date_ob = new Date();
-
-    const date = ('0' + date_ob.getUTCDate()).slice(-2);
-
-    const month = ('0' + (date_ob.getUTCMonth() + 1)).slice(-2);
-
-    const year = date_ob.getUTCFullYear();
-
-    const hours = date_ob.getUTCHours();
-
-    const minutes = date_ob.getUTCMinutes();
-
-    const seconds = date_ob.getUTCMinutes();
-
-    return `${year}-${month}-${date}T${hours}:${minutes}:${seconds}Z`;
-  }
-
   export class queue<T> {
     private container: T[];
     constructor(iterable: Iterable<T> = []) {
