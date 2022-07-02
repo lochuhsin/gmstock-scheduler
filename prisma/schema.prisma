@@ -56,7 +56,7 @@ model etf {
     oldest_date           DateTime
     ishistorydatafinished Boolean
 
-    @@unique([symbol, country])
+    @@unique([symbol, mic_code])
 }
 
 model indices {
