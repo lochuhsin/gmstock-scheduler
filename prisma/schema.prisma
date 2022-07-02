@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model stocks {
+    symbol                String   @id
+    name                  String
+    currency              String
+    exchange              String
+    mic_code              String
+    country               String
+    type                  String
+    latest_date           DateTime
+    oldest_date           DateTime
+    ishistorydatafinished Boolean
+}
+
+model forexpair {
+    symbol                String   @id
+    currency_group        String
+    currency_base         String
+    currency_quote        String
+    latest_date           DateTime
+    oldest_date           DateTime
+    ishistorydatafinished Boolean
+}
+
+model cryptocurrency {
+    symbol                String   @id
+    available_exchange    String
+    currency_base         String
+    currency_quote        String
+    latest_date           DateTime
+    oldest_date           DateTime
+    ishistorydatafinished Boolean
+}
+
+model etf {
+    symbol                String   @id
+    name                  String
+    currency              String
+    exchange              String
+    mic_code              String
+    country               String
+    latest_date           DateTime
+    oldest_date           DateTime
+    ishistorydatafinished Boolean
+}
+
+model indices {
+    symbol                String   @id
+    name                  String
+    country               String
+    currency              String
+    latest_date           DateTime
+    oldest_date           DateTime
+    ishistorydatafinished Boolean
+}
+
+model stocksdata {
+    symbol           String
+    record_date_time DateTime
+    open             String
+    high             String
+    low              String
+    close            String
+    volume           String
+
+    @@unique([symbol, record_date_time])
+}
+
+model forexpairdata {
+    id               Int      @id @default(autoincrement())
+    symbol           String
+    record_date_time DateTime
+    open             String
+    high             String
+    low              String
+    close            String
+    volume           String
+
+    @@unique([symbol, record_date_time])
+}
+
+model cryptocurrencydata {
+    id               Int      @id @default(autoincrement())
+    symbol           String
+    record_date_time DateTime
+    open             String
+    high             String
+    low              String
+    close            String
+    volume           String
+
+    @@unique([symbol, record_date_time])
+}
+
+model etfdata {
+    id               Int      @id @default(autoincrement())
+    symbol           String
+    record_date_time DateTime
+    open             String
+    high             String
+    low              String
+    close            String
+    volume           String
+
+    @@unique([symbol, record_date_time])
+}
+
+model indicesdata {
+    id               Int      @id @default(autoincrement())
+    symbol           String
+    record_date_time DateTime
+    open             String
+    high             String
+    low              String
+    close            String
+    volume           String
+
+    @@unique([symbol, record_date_time])
+}
