@@ -28,44 +28,18 @@
 
 ## Installation
 
+1. download npm and install it.
+2. install yarn
 ```bash
-$ npm install
+npm install -g yarn
 ```
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
+3. download docker and install it.
+4. run commands below.
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker-compose up -d
+yarn
+npx prisma migrate dev
+yarn start:dev
 ```
 
-## Basic Usage
-
-database migration: https://db-migrate.readthedocs.io/en/latest/Getting%20Started/usage/
-
-execute startScript.sh 
-
-create migration:
-npm run migrate create <migration_name>
-
-execute migration:
-npm run migrate up

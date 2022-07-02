@@ -6,8 +6,8 @@ import { TwelveData } from 'src/third_party/twelveData';
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
 
-  @Cron(CronExpression.EVERY_SECOND)
+  @Cron(CronExpression.EVERY_10_HOURS)
   async SampleJob() {
-    this.logger.debug('Called when the current second is 1');
+    this.logger.debug('OMG!!! It\'s cronjob!!');
   }
 }

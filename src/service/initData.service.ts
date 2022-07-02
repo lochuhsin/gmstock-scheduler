@@ -6,6 +6,8 @@ import settings from '../config';
 import { Client } from 'pg';
 const fs = require('fs');
 import { util } from '../util/util';
+import { PrismaService } from './prisma.service';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class initDataService implements OnModuleInit {
@@ -14,13 +16,16 @@ export class initDataService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     const scriptPath = settings.startScript['path'];
 
-    // test postgres database connection
     await this.testDBConnection();
 
-    // check start script
     this.checkStartScript(scriptPath);
+    await this.migration(scriptPath);
+    await this.fillSymbol();
 
-    // exec migration script
+    this.logger.log(`The module has been initialized.`);
+  }
+
+  async migration(scriptPath: string): Promise<void> {
     const linux_liked_os = ['linux', 'darwin'];
     if (linux_liked_os.includes(process.platform)) {
       // exec migration script
@@ -28,16 +33,15 @@ export class initDataService implements OnModuleInit {
     } else {
       this.logger.log('Skip migration.');
     }
-    // fill up all Symbol list
-    await this.fillSymbol();
-
-    // filled up with initial data list
-    this.logger.log(`The module has been initialized.`);
   }
 
+  /**
+   * filled up with initial data list
+   */
   async fillSymbol(): Promise<void> {
     const waitTime = 1000; // ms
-    const symbol = new symbolService();
+    const prismaService = new PrismaService();
+    const symbol = new symbolService(prismaService);
     const func_arr = [
       symbol.getInitStocks.bind(symbol),
       symbol.getInitForexPair.bind(symbol),
@@ -96,7 +100,8 @@ export class initDataService implements OnModuleInit {
 
 export class symbolService {
   public readonly logger = new Logger(initDataService.name);
-  private readonly pgDatabase = new rmdb.postgres();
+  private readonly pgDatabase = new rmdb.postgres(this.prisma);
+  constructor(private readonly prisma: PrismaService) {}
 
   async getInitStocks(): Promise<void> {
     const row_count = await this.pgDatabase.getRowCount('stocks');
