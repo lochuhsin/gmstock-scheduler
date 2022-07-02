@@ -11,7 +11,7 @@ datasource db {
 }
 
 model stocks {
-    symbol                String   @id
+    symbol                String
     name                  String
     currency              String
     exchange              String
@@ -21,6 +21,8 @@ model stocks {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+
+    @@unique([symbol, country])
 }
 
 model forexpair {
@@ -44,7 +46,7 @@ model cryptocurrency {
 }
 
 model etf {
-    symbol                String   @id
+    symbol                String
     name                  String
     currency              String
     exchange              String
@@ -53,16 +55,20 @@ model etf {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+
+    @@unique([symbol, country])
 }
 
 model indices {
-    symbol                String   @id
+    symbol                String
     name                  String
     country               String
     currency              String
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+
+    @@unique([symbol, country])
 }
 
 model stocksdata {
