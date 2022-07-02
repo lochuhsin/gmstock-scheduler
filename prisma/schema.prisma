@@ -11,6 +11,7 @@ datasource db {
 }
 
 model stocks {
+    id                    Int      @id @default(autoincrement())
     symbol                String
     name                  String
     currency              String
@@ -26,7 +27,8 @@ model stocks {
 }
 
 model forexpair {
-    symbol                String   @id
+    id                    Int      @id @default(autoincrement())
+    symbol                String
     currency_group        String
     currency_base         String
     currency_quote        String
@@ -36,7 +38,8 @@ model forexpair {
 }
 
 model cryptocurrency {
-    symbol                String   @id
+    id                    Int      @id @default(autoincrement())
+    symbol                String
     available_exchange    String
     currency_base         String
     currency_quote        String
@@ -46,6 +49,7 @@ model cryptocurrency {
 }
 
 model etf {
+    id                    Int      @id @default(autoincrement())
     symbol                String
     name                  String
     currency              String
@@ -60,6 +64,7 @@ model etf {
 }
 
 model indices {
+    id                    Int      @id @default(autoincrement())
     symbol                String
     name                  String
     country               String

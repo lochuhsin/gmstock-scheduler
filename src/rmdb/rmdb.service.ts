@@ -22,9 +22,9 @@ export class RmdbService {
     this.client = new Client(settings.postgres);
     this.client.connect((err) => {
       if (err) {
-        console.error('connection error', err.stack);
+        this.logger.error('connection error', err.stack);
       } else {
-        console.log('connected');
+        this.logger.log('connected');
       }
     });
   }
@@ -35,12 +35,38 @@ export class RmdbService {
   async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
     return await this.prisma[tableName].findMany({
       select: {
+        id: true,
         symbol: true,
         latest_date: true,
         oldest_date: true,
         ishistorydatafinished: true,
       },
     });
+  }
+
+  async updateLatestDate(tableName: string, id: number, date: Date) {
+    return await this.prisma[tableName]
+      .update({
+        where: {
+          id: id,
+        },
+        data: {
+          latest_date: date,
+        },
+      })
+      .catch((d) => this.logger.error(d));
+  }
+  async updateOldestDate(tableName: string, id: number, date: Date) {
+    return await this.prisma[tableName]
+      .update({
+        where: {
+          id: id,
+        },
+        data: {
+          oldest_date: date,
+        },
+      })
+      .catch((d) => this.logger.error(d));
   }
 
   async bulkInsertStocks(inputs: rsp_stocks[]): Promise<any> {
@@ -161,7 +187,7 @@ export class RmdbService {
     );
     this.client.query(query, (err, res) => {
       if (err) {
-        console.log(err);
+        this.logger.log(err);
       }
     });
   }
@@ -175,7 +201,7 @@ export class RmdbService {
     );
     this.client.query(query, (err, res) => {
       if (err) {
-        console.log(err);
+        this.logger.log(err);
       }
     });
   }
