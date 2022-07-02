@@ -69,6 +69,23 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
+  async updateIsHistoryDataFinished(
+    tableName: string,
+    id: number,
+    status: boolean,
+  ) {
+    return await this.prisma[tableName]
+      .update({
+        where: {
+          id: id,
+        },
+        data: {
+          ishistorydatafinished: status,
+        },
+      })
+      .catch((d) => this.logger.error(d));
+  }
+
   async bulkInsertStocks(inputs: rsp_stocks[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
@@ -180,7 +197,7 @@ export class RmdbService {
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
-  bulkInsertTableData(tableName: string, data: string[][]) {
+  async bulkInsertTableData(tableName: string, data: string[][]) {
     const query = format(
       `INSERT INTO ${tableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
       data,
@@ -193,7 +210,7 @@ export class RmdbService {
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
-  insertTableData(tableName: string, data: string[]) {
+  async insertTableData(tableName: string, data: string[]) {
     const d = [data];
     const query = format(
       `INSERT INTO ${tableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,

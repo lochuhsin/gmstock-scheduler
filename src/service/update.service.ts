@@ -88,10 +88,13 @@ export class UpdateService {
     }
 
     if (result == null) {
-      // update symbol table to True (ishistory finished)
-      // update oldest date from data
+      await this.rmdbService.updateIsHistoryDataFinished(
+        task.table_name,
+        task.id,
+        true,
+      );
     } else {
-      this.rmdbService.bulkInsertTableData(task.table_name, result);
+      await this.rmdbService.bulkInsertTableData(task.table_name, result);
       // update oldest date from data
     }
   }
