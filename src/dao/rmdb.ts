@@ -157,7 +157,7 @@ export namespace rmdb {
     // input data format : symbol, datetime, open, high, low, close, volume
     bulkInsertTableData(tableName: string, data: string[][]) {
       const query = format(
-        `INSERT INTO ${tableName} (symbol, datetime, open, high, low, close, volume) VALUES %L`,
+        `INSERT INTO ${tableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
         data,
       );
       this.client.query(query, (err, res) => {
@@ -171,7 +171,7 @@ export namespace rmdb {
     insertTableData(tableName: string, data: string[]) {
       const d = [data];
       const query = format(
-        `INSERT INTO ${tableName} (symbol, datetime, open, high, low, close, volume) VALUES %L`,
+        `INSERT INTO ${tableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
         d,
       );
       this.client.query(query, (err, res) => {
