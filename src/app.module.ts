@@ -4,10 +4,10 @@ import { AppService } from './app.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './tasks/task-test.module';
 import { InitDataModule } from './service/initData.module';
+import { PrismaService } from './service/prisma.service';
 import { UpdateModule } from './service/update.module';
-import { UpdateService } from './service/update.service';
-import { PrismaClient } from '@prisma/client';
-
+import { TestController } from './test/test.controller';
+import { TestService } from './test/test.service';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
@@ -15,8 +15,7 @@ import { PrismaClient } from '@prisma/client';
     InitDataModule,
     UpdateModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, UpdateService, PrismaClient],
+  controllers: [AppController, TestController],
+  providers: [AppService, UpdateModule, PrismaService, TestService],
 })
-
 export class AppModule {}
