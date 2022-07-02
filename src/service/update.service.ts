@@ -45,19 +45,16 @@ export class UpdateService {
 
   async runSymbolTasks(): Promise<void> {
     if (this.leftAPICount > 0) {
-      //Run history
       if (this.historyTaskQue.getSize() > 0) {
         await this.runHistory(); // finished
         this.leftAPICount--;
       }
 
-      // Run update
       if (this.updateTaskQue.getSize() > 0) {
         await this.runUpdate();
         this.leftAPICount--;
       }
 
-      // Run daily
       if (this.dailyTaskQue.getSize() > 0) {
         await this.runDaily();
         this.leftAPICount--;
@@ -65,7 +62,6 @@ export class UpdateService {
     }
   }
 
-  // not finished
   private async runHistory(): Promise<void> {
     const task: db_rsp_symboltask = this.historyTaskQue.pop();
     const endDate = task.oldest_date;
@@ -108,7 +104,6 @@ export class UpdateService {
     }
   }
 
-  // not finished
   private async runUpdate() {
     const task: db_rsp_symboltask = this.updateTaskQue.pop();
     let result: string[][];
