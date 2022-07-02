@@ -74,18 +74,41 @@ export class UpdateService {
     }
   }
 
+  // not finished
+  private async runHistory(task: db_rsp_symboltask, start_date, end_date): Promise<void> {
+    let result: string[][];
+    try {
+      result = await TwelveData.timeSeries(task.symbol, start_date, end_date);
+
+    } catch (e) {
+      this.logger.error(`task failed with error: ${e}`);
+      this.errorTaskQue.push([task, TaskType.history]);
+    }
+
+    if (result == null) {
+      // update symbol table to True (ishistory finished)
+      // update oldest date from data
+
+
+    }else{
+      this.pgDatabase.bulkInsertTableData(task.table_name, result);
+      // update oldest date from data
+    }
+  }
+
+  // not finished
   private async runUpdate() {
     const task: db_rsp_symboltask = this.updateTaskQue.pop();
     let result: string[][];
     try {
       const updateDateTime = util.modifyDateTimeWithDay(
-        util.getCurrentDateTime(),
-        -1,
+          util.getCurrentDateTime(),
+          -1,
       );
       result = await TwelveData.timeSeries(
-        task.symbol,
-        task.latest_date,
-        updateDateTime,
+          task.symbol,
+          task.latest_date,
+          updateDateTime,
       );
     } catch (e) {
       this.logger.warn(`Symbol ${task.symbol} update failed`);
@@ -97,6 +120,8 @@ export class UpdateService {
     }
     result.shift(); // remove the first element since it is column name
     await this.pgDatabase.bulkInsertTableData(task.table_name, result);
+    // update latest datetime
+    //
   }
 
   private async runDaily() {
@@ -111,20 +136,7 @@ export class UpdateService {
     }
   }
 
-  // not finished
-  private async runHistory(task, start_date, end_date): Promise<any> {
-    let result: string[][];
-    try {
-      result = await TwelveData.timeSeries(task.symbol, start_date, end_date);
-      if (result == null) {
-        // handle situation of no data
-      }
-    } catch (e) {
-      this.logger.error(`task failed with error: ${e}`);
-      this.errorTaskQue.push([task, TaskType.history]);
-      return -1;
-    }
-  }
+
 
   private async fillSymbolTasks() {
     for (const table_name of this.tableList) {
