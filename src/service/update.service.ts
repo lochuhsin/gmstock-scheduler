@@ -130,6 +130,12 @@ export class UpdateService {
     try {
       const result = await TwelveData.latest(symbol);
       this.rmdbService.insertTableData(task.table_name, result);
+      const datetime: Date = new Date(result[0]);
+      await this.rmdbService.updateLatestDate(
+        task.table_name,
+        task.id,
+        datetime,
+      );
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
       this.errorTaskQue.push([task, TaskType.daily]);
