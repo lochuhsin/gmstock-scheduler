@@ -62,7 +62,7 @@ export namespace rmdb {
       );
       await this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
@@ -84,7 +84,7 @@ export namespace rmdb {
 
       await this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
@@ -108,7 +108,7 @@ export namespace rmdb {
 
       await this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
@@ -129,10 +129,9 @@ export namespace rmdb {
         'INSERT INTO etf (symbol, name, currency, exchange, mic_code, country, latest_date, oldest_date, ishistorydatafinished) VALUES %L',
         data,
       );
-
       await this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
@@ -154,7 +153,7 @@ export namespace rmdb {
 
       await this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
@@ -167,7 +166,7 @@ export namespace rmdb {
       );
       this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
@@ -181,7 +180,7 @@ export namespace rmdb {
       );
       this.client.query(query, (err, res) => {
         if (err) {
-          console.log(res);
+          console.log(err);
         }
       });
     }
