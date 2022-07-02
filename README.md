@@ -40,46 +40,6 @@ npm install -g yarn
 docker-compose up -d
 yarn
 npx prisma migrate dev
+yarn start:dev
 ```
 
-```bash
-$ npm install
-```
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Basic Usage
-
-database migration: https://db-migrate.readthedocs.io/en/latest/Getting%20Started/usage/
-
-execute startScript.sh 
-
-create migration:
-npm run migrate create <migration_name>
-
-execute migration:
-npm run migrate up
