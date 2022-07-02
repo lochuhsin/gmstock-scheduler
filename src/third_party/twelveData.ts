@@ -78,9 +78,9 @@ export namespace TwelveData {
     const rsp = await axios.get<string>(url, {
       params: params,
     });
-    var text = rsp.data;
+    const text = rsp.data;
     if (text.includes('code')) {
-      var data: twelve_base<failed_obj> = JSON.parse(text);
+      const data: twelve_base<failed_obj> = JSON.parse(text);
       if (data.code == 400) {
         return null;
       } else {
