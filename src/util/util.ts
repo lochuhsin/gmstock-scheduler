@@ -27,7 +27,7 @@ export namespace util {
     );
   }
 
-  export function modifyDateWithDay(date: string, day_count: number): string{
+  export function modifyDateWithDay(date: string, day_count: number): string {
     const d = new Date(date);
     d.setDate(d.getDate() + day_count);
     const mon = d.getMonth() + 1;
@@ -68,6 +68,24 @@ export namespace util {
     const seconds = date_ob.getSeconds();
 
     return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+  }
+
+  export function getUtlDateTime(): string {
+    const date_ob = new Date();
+
+    const date = ('0' + date_ob.getUTCDate()).slice(-2);
+
+    const month = ('0' + (date_ob.getUTCMonth() + 1)).slice(-2);
+
+    const year = date_ob.getUTCFullYear();
+
+    const hours = date_ob.getUTCHours();
+
+    const minutes = date_ob.getUTCMinutes();
+
+    const seconds = date_ob.getUTCMinutes();
+
+    return `${year}-${month}-${date}T${hours}:${minutes}:${seconds}Z`;
   }
 
   export class queue<T> {

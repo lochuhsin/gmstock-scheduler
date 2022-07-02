@@ -6,6 +6,8 @@ import settings from '../config';
 import { Client } from 'pg';
 const fs = require('fs');
 import { util } from '../util/util';
+import { PrismaService } from './prisma.service';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class initDataService implements OnModuleInit {
@@ -38,7 +40,8 @@ export class initDataService implements OnModuleInit {
    */
   async fillSymbol(): Promise<void> {
     const waitTime = 1000; // ms
-    const symbol = new symbolService();
+    const prismaService = new PrismaService();
+    const symbol = new symbolService(prismaService);
     const func_arr = [
       symbol.getInitStocks.bind(symbol),
       symbol.getInitForexPair.bind(symbol),
@@ -97,7 +100,8 @@ export class initDataService implements OnModuleInit {
 
 export class symbolService {
   public readonly logger = new Logger(initDataService.name);
-  private readonly pgDatabase = new rmdb.postgres();
+  private readonly pgDatabase = new rmdb.postgres(this.prisma);
+  constructor(private readonly prisma: PrismaService) {}
 
   async getInitStocks(): Promise<void> {
     const row_count = await this.pgDatabase.getRowCount('stocks');

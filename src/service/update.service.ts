@@ -4,6 +4,7 @@ import { util } from '../util/util';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import { TwelveData } from '../third_party/twelveData';
 import settings from '../config';
+import { PrismaService } from './prisma.service';
 
 enum TaskType {
   daily,
@@ -22,7 +23,7 @@ export class UpdateService {
   private leftAPICount = settings.api['apicount'];
   private readonly historyInterval = settings.api['historyInterval']; //day
 
-  private readonly pgDatabase = new rmdb.postgres();
+  private readonly pgDatabase = new rmdb.postgres(this.prisma);
   private readonly tableList = [
     'stocks',
     'forexpair',
@@ -31,7 +32,7 @@ export class UpdateService {
     'indices',
   ];
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     this.historyTaskQue = new util.queue<db_rsp_symboltask>();
     this.dailyTaskQue = new util.queue<db_rsp_symboltask>();
     this.updateTaskQue = new util.queue<db_rsp_symboltask>();
@@ -75,11 +76,14 @@ export class UpdateService {
   }
 
   // not finished
-  private async runHistory(task: db_rsp_symboltask, start_date, end_date): Promise<void> {
+  private async runHistory(
+    task: db_rsp_symboltask,
+    start_date,
+    end_date,
+  ): Promise<void> {
     let result: string[][];
     try {
       result = await TwelveData.timeSeries(task.symbol, start_date, end_date);
-
     } catch (e) {
       this.logger.error(`task failed with error: ${e}`);
       this.errorTaskQue.push([task, TaskType.history]);
@@ -88,9 +92,7 @@ export class UpdateService {
     if (result == null) {
       // update symbol table to True (ishistory finished)
       // update oldest date from data
-
-
-    }else{
+    } else {
       this.pgDatabase.bulkInsertTableData(task.table_name, result);
       // update oldest date from data
     }
@@ -102,13 +104,13 @@ export class UpdateService {
     let result: string[][];
     try {
       const updateDateTime = util.modifyDateTimeWithDay(
-          util.getCurrentDateTime(),
-          -1,
+        util.getCurrentDateTime(),
+        -1,
       );
       result = await TwelveData.timeSeries(
-          task.symbol,
-          task.latest_date,
-          updateDateTime,
+        task.symbol,
+        task.latest_date,
+        updateDateTime,
       );
     } catch (e) {
       this.logger.warn(`Symbol ${task.symbol} update failed`);
@@ -135,8 +137,6 @@ export class UpdateService {
       this.errorTaskQue.push([task, TaskType.daily]);
     }
   }
-
-
 
   private async fillSymbolTasks() {
     for (const table_name of this.tableList) {
