@@ -45,7 +45,7 @@ export namespace rmdb {
     }
 
     async bulkInsertStocks(inputs: rsp_stocks[]): Promise<any> {
-      const currentTime = util.getUtlDateTime();
+      const currentTime = new Date();
       const data = inputs.map((d) => {
         return {
           symbol: d.symbol,
@@ -69,7 +69,7 @@ export namespace rmdb {
     }
 
     async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
-      const currentTime = util.getUtlDateTime();
+      const currentTime = new Date();
       const data = inputs.map((d) => {
         return {
           symbol: d.symbol,
@@ -90,7 +90,7 @@ export namespace rmdb {
     }
 
     async bulkInsertCryptoCurrency(inputs: rsp_cryptocurrency[]): Promise<any> {
-      const currentTime = util.getUtlDateTime();
+      const currentTime = new Date();
       const data = inputs.map((d) => {
         return {
           symbol: d.symbol,
@@ -111,7 +111,7 @@ export namespace rmdb {
     }
     
     async bulkInsertETF(inputs: rsp_etf[]): Promise<any> {
-      const currentTime = util.getUtlDateTime();
+      const currentTime = new Date();
       const data = inputs.map((d) => {
         return {
           symbol: d.symbol,
@@ -134,7 +134,7 @@ export namespace rmdb {
     }
 
     async bulkInsertIndice(inputs: rsp_indices[]): Promise<any> {
-      const currentTime = util.getUtlDateTime();
+      const currentTime = new Date();
       const data = inputs.map((d) => {
         return {
           symbol: d.symbol,
