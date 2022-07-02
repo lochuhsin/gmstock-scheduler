@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { rmdb } from 'src/dao/rmdb';
-import { PrismaService } from 'src/service/prisma.service';
+import { RmdbService } from 'src/rmdb/rmdb.service';
 import { TwelveData } from 'src/third_party/twelveData';
 
 @Injectable()
 export class TestService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly rmdbService: RmdbService) {}
 
-  private readonly pgDatabase = new rmdb.postgres(this.prisma);
   async test() {
     const data = await TwelveData.allStocks();
-    return await this.pgDatabase.bulkInsertStocks(data.slice(0, 5));
+    return await this.rmdbService.bulkInsertStocks(data.slice(0, 5));
   }
 }

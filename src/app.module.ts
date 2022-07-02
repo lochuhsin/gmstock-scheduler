@@ -8,12 +8,14 @@ import { PrismaService } from './service/prisma.service';
 import { UpdateModule } from './service/update.module';
 import { TestController } from './test/test.controller';
 import { TestService } from './test/test.service';
+import { RmdbModule } from './rmdb/rmdb.module';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
     TasksModule,
     InitDataModule,
     UpdateModule,
+    RmdbModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService, UpdateModule, PrismaService, TestService],

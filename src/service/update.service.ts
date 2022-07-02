@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { rmdb } from '../dao/rmdb';
 import { util } from '../util/util';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import { TwelveData } from '../third_party/twelveData';
 import settings from '../config';
-import { PrismaService } from './prisma.service';
+import { RmdbService } from 'src/rmdb/rmdb.service';
 
 enum TaskType {
   daily,
@@ -23,7 +22,6 @@ export class UpdateService {
   private leftAPICount = settings.api['apicount'];
   private readonly historyInterval = settings.api['historyInterval']; //day
 
-  private readonly pgDatabase = new rmdb.postgres(this.prisma);
   private readonly tableList = [
     'stocks',
     'forexpair',
@@ -32,7 +30,7 @@ export class UpdateService {
     'indices',
   ];
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly rmdbService: RmdbService) {
     this.historyTaskQue = new util.queue<db_rsp_symboltask>();
     this.dailyTaskQue = new util.queue<db_rsp_symboltask>();
     this.updateTaskQue = new util.queue<db_rsp_symboltask>();
@@ -93,7 +91,7 @@ export class UpdateService {
       // update symbol table to True (ishistory finished)
       // update oldest date from data
     } else {
-      this.pgDatabase.bulkInsertTableData(task.table_name, result);
+      this.rmdbService.bulkInsertTableData(task.table_name, result);
       // update oldest date from data
     }
   }
@@ -121,7 +119,7 @@ export class UpdateService {
       // handle situation of no data
     }
     result.shift(); // remove the first element since it is column name
-    await this.pgDatabase.bulkInsertTableData(task.table_name, result);
+    await this.rmdbService.bulkInsertTableData(task.table_name, result);
     // update latest datetime
     //
   }
@@ -131,7 +129,7 @@ export class UpdateService {
     const symbol = task.symbol;
     try {
       const result = await TwelveData.latest(symbol);
-      this.pgDatabase.insertTableData(task.table_name, result);
+      this.rmdbService.insertTableData(task.table_name, result);
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
       this.errorTaskQue.push([task, TaskType.daily]);
@@ -140,7 +138,7 @@ export class UpdateService {
 
   private async fillSymbolTasks() {
     for (const table_name of this.tableList) {
-      const result: db_rsp_symboltask[] = await this.pgDatabase.getSymbolTask(
+      const result: db_rsp_symboltask[] = await this.rmdbService.getSymbolTask(
         table_name,
       );
       for (const obj of result) {

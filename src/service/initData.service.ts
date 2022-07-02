@@ -1,5 +1,4 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { rmdb } from '../dao/rmdb';
 import { TwelveData } from '../third_party/twelveData';
 import { exec } from 'child_process';
 import settings from '../config';
@@ -7,7 +6,7 @@ import { Client } from 'pg';
 const fs = require('fs');
 import { util } from '../util/util';
 import { PrismaService } from './prisma.service';
-import { PrismaClient } from '@prisma/client';
+import { RmdbService } from 'src/rmdb/rmdb.service';
 
 @Injectable()
 export class initDataService implements OnModuleInit {
@@ -40,8 +39,8 @@ export class initDataService implements OnModuleInit {
    */
   async fillSymbol(): Promise<void> {
     const waitTime = 1000; // ms
-    const prismaService = new PrismaService();
-    const symbol = new symbolService(prismaService);
+    const rmdbService = new RmdbService(new PrismaService());
+    const symbol = new symbolService(rmdbService);
     const func_arr = [
       symbol.getInitStocks.bind(symbol),
       symbol.getInitForexPair.bind(symbol),
@@ -100,60 +99,59 @@ export class initDataService implements OnModuleInit {
 
 export class symbolService {
   public readonly logger = new Logger(initDataService.name);
-  private readonly pgDatabase = new rmdb.postgres(this.prisma);
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly rmdbService: RmdbService) {}
 
   async getInitStocks(): Promise<void> {
-    const row_count = await this.pgDatabase.getRowCount('stocks');
+    const row_count = await this.rmdbService.getRowCount('stocks');
     if (row_count > 0) {
       this.logger.log('stocks data exists, skip');
     } else {
       const data = await TwelveData.allStocks();
-      await this.pgDatabase.bulkInsertStocks(data);
+      await this.rmdbService.bulkInsertStocks(data);
       this.logger.log('stocks symbol initialized.');
     }
   }
 
   async getInitForexPair(): Promise<void> {
-    const row_count = await this.pgDatabase.getRowCount('forexpair');
+    const row_count = await this.rmdbService.getRowCount('forexpair');
     if (row_count > 0) {
       this.logger.log('forexpair data exists, skip');
     } else {
       const data = await TwelveData.allForexPair();
-      await this.pgDatabase.bulkInsertForexPair(data);
+      await this.rmdbService.bulkInsertForexPair(data);
       this.logger.log('forexpair symbol initialized.');
     }
   }
 
   async getInitCryptoCurrency(): Promise<void> {
-    const row_count = await this.pgDatabase.getRowCount('cryptocurrency');
+    const row_count = await this.rmdbService.getRowCount('cryptocurrency');
     if (row_count > 0) {
       this.logger.log('cryptocurrency data exists, skip');
     } else {
       const data = await TwelveData.allCryptoCurrency();
-      await this.pgDatabase.bulkInsertCryptoCurrency(data);
+      await this.rmdbService.bulkInsertCryptoCurrency(data);
       this.logger.log('cryptocurrency symbol initialized.');
     }
   }
 
   async getInitETF(): Promise<void> {
-    const row_count = await this.pgDatabase.getRowCount('etf');
+    const row_count = await this.rmdbService.getRowCount('etf');
     if (row_count > 0) {
       this.logger.log('etf data exists, skip');
     } else {
       const data = await TwelveData.allETF();
-      await this.pgDatabase.bulkInsertETF(data);
+      await this.rmdbService.bulkInsertETF(data);
       this.logger.log('etf symbol initialized.');
     }
   }
 
   async getInitIndice(): Promise<void> {
-    const row_count = await this.pgDatabase.getRowCount('indices');
+    const row_count = await this.rmdbService.getRowCount('indices');
     if (row_count > 0) {
       this.logger.log('indice data exists, skip');
     } else {
       const data = await TwelveData.allIndices();
-      await this.pgDatabase.bulkInsertIndice(data);
+      await this.rmdbService.bulkInsertIndice(data);
       this.logger.log('indice symbol initialized.');
     }
   }
