@@ -75,20 +75,21 @@ export namespace TwelveData {
       format: 'csv',
     };
 
-    const rsp = await axios.get<string>(url, {
+    const rsp = await axios.get(url, {
       params: params,
     });
-    const text = rsp.data;
-    if (text.includes('code')) {
-      const data: twelve_base<failed_obj> = JSON.parse(text);
-      if (data.code == 400) {
+    const data = rsp.data;
+    console.log(typeof data);
+    if (typeof data === 'object') {
+      const err_data: twelve_base<failed_obj> = data;
+      if (err_data.code == 400) {
         return null;
       } else {
         throw new Error(data.message);
       }
     }
 
-    return parse(text, {
+    return parse(data, {
       delimiter: ';',
       skip_empty_lines: true,
     });
