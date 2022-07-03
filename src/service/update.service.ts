@@ -124,11 +124,13 @@ export class UpdateService {
 
     if (result != null) {
       result.shift(); // remove the first element since it is column name
+      result.map((obj) => {
+        obj.unshift(task.symbol);
+        return obj;
+      });
+
       await this.rmdbService.bulkInsertTableData(task.table_name, result);
-      const latestDate = await this.rmdbService.getSymbolLatestDate(
-        task.table_name,
-        task.symbol,
-      );
+      const latestDate = new Date(result[0][1]);
       await this.rmdbService.updateLatestDate(
         task.table_name,
         task.id,
