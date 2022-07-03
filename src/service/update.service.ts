@@ -88,8 +88,7 @@ export class UpdateService {
         true,
       );
     } else {
-      result.shift(); // remove columns
-
+      result.shift();
       result.map((obj) => {
         obj.unshift(task.symbol);
         return obj;
@@ -110,7 +109,6 @@ export class UpdateService {
     let result: string[][];
     try {
       const updateDateTime: Date = new Date();
-
       const endDate = util.convertDateToDateString(updateDateTime);
       const startDate = util.convertDateToDateString(task.latest_date);
 
@@ -139,21 +137,21 @@ export class UpdateService {
     }
   }
 
-  private async runDaily() {
+  async runDaily() {
     const task: db_rsp_symboltask = this.dailyTaskQue.pop();
     const symbol = task.symbol;
+    let result: string[] | null;
     try {
       const result = await TwelveData.latest(symbol);
-      await this.rmdbService.insertTableData(task.table_name, result);
-      const datetime: Date = new Date(result[0]);
-      await this.rmdbService.updateLatestDate(
-        task.table_name,
-        task.id,
-        datetime,
-      );
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
       this.errorTaskQue.push([task, TaskType.daily]);
+    }
+    if (result!= null){
+      result.unshift(task.symbol);
+      const latestDate = new Date(result[1]);
+      await this.rmdbService.updateLatestDate(task.table_name, task.id, latestDate);
+      await this.rmdbService.insertTableData(task.table_name, result);
     }
   }
 
