@@ -38,8 +38,6 @@ export class UpdateService {
 
   async initSymbolTasks(): Promise<void> {
     await this.fillSymbolTasks();
-
-    console.log(this.historyTaskQue.getSize());
     this.logger.log(`Init Symbol Tasks at ${util.getCurrentDateTime()}`);
   }
 
@@ -71,7 +69,7 @@ export class UpdateService {
     const endDateString = util.convertDateToDateString(endDate);
     const startDateString = util.convertDateToDateString(copyDate);
 
-    let result: string[][];
+    let result: string[][] | null;
     try {
       result = await TwelveData.timeSeries(
         task.symbol,
@@ -91,11 +89,14 @@ export class UpdateService {
       );
     } else {
       result.shift(); // remove columns
+
+      result.map((obj) => {
+        obj.unshift(task.symbol);
+        return obj;
+      })
+
       await this.rmdbService.bulkInsertTableData(task.table_name, result);
-      const oldestDate: Date = await this.rmdbService.getSymbolOldestDate(
-        task.table_name,
-        task.symbol,
-      );
+      const oldestDate: Date = new Date(result[result.length-1][1]);
       await this.rmdbService.updateOldestDate(
         task.table_name,
         task.id,
