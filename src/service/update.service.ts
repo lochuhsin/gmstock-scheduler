@@ -109,7 +109,6 @@ export class UpdateService {
     let result: string[][];
     try {
       const updateDateTime: Date = new Date();
-
       const endDate = util.convertDateToDateString(updateDateTime);
       const startDate = util.convertDateToDateString(task.latest_date);
 
@@ -151,9 +150,8 @@ export class UpdateService {
     if (result!= null){
       result.unshift(task.symbol);
       const latestDate = new Date(result[1]);
-      this.rmdbService.updateLatestDate(task.table_name, task.id, latestDate);
-      this.rmdbService.insertTableData(task.table_name, result);
-
+      await this.rmdbService.updateLatestDate(task.table_name, task.id, latestDate);
+      await this.rmdbService.insertTableData(task.table_name, result);
     }
   }
 

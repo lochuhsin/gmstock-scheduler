@@ -49,8 +49,8 @@ export class RmdbService {
     })
   }
 
-  async updateLatestDate(tableName: string, id: number, date: Date) {
-    return await this.prisma[tableName]
+  async updateLatestDate(tableName: string, id: number, date: Date): Promise<void> {
+    await this.prisma[tableName]
       .update({
         where: {
           id: id,
@@ -61,8 +61,8 @@ export class RmdbService {
       })
       .catch((d) => this.logger.error(d));
   }
-  async updateOldestDate(tableName: string, id: number, date: Date) {
-    return await this.prisma[tableName]
+  async updateOldestDate(tableName: string, id: number, date: Date): Promise<void> {
+    await this.prisma[tableName]
       .update({
         where: {
           id: id,
@@ -78,8 +78,8 @@ export class RmdbService {
     tableName: string,
     id: number,
     status: boolean,
-  ) {
-    return await this.prisma[tableName]
+  ): Promise<void> {
+    await this.prisma[tableName]
       .update({
         where: {
           id: id,
@@ -202,7 +202,7 @@ export class RmdbService {
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
-  async bulkInsertTableData(tableName: string, data: string[][]) {
+  async bulkInsertTableData(tableName: string, data: string[][]): Promise<void> {
     const dataTableName = tableName + 'data';
     const query = format(
       `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
@@ -216,7 +216,7 @@ export class RmdbService {
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
-  async insertTableData(tableName: string, data: string[]) {
+  async insertTableData(tableName: string, data: string[]): Promise<void> {
     const dataTableName = tableName + 'data';
     const d = [data];
     const query = format(
