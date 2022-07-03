@@ -33,7 +33,7 @@ export class RmdbService {
   }
 
   async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
-    return await this.prisma[tableName].findMany({
+    const res =  await this.prisma[tableName].findMany({
       select: {
         id: true,
         symbol: true,
@@ -42,6 +42,11 @@ export class RmdbService {
         ishistorydatafinished: true,
       },
     });
+
+    return res.map((obj)=> {
+      obj['table_name'] = tableName;
+      return obj;
+    })
   }
 
   async getSymbolOldestDate(tableName: string, symbol: string): Promise<Date> {
@@ -219,8 +224,9 @@ export class RmdbService {
 
   // input data format : symbol, datetime, open, high, low, close, volume
   async bulkInsertTableData(tableName: string, data: string[][]) {
+    const dataTableName = tableName + 'data';
     const query = format(
-      `INSERT INTO ${tableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
+      `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
       data,
     );
     this.client.query(query, (err, res) => {
@@ -232,9 +238,10 @@ export class RmdbService {
 
   // input data format : symbol, datetime, open, high, low, close, volume
   async insertTableData(tableName: string, data: string[]) {
+    const dataTableName = tableName + 'data';
     const d = [data];
     const query = format(
-      `INSERT INTO ${tableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
+      `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
       d,
     );
     this.client.query(query, (err, res) => {
