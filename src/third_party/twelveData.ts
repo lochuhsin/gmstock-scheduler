@@ -103,19 +103,26 @@ export namespace TwelveData {
       symbol: symbol,
       interval: '1day',
     };
-
-    const rsp = await axios.get(url, {
+    const rsp = await axios.get<any>(url, {
       params: params,
     });
 
-    const data = rsp['data'];
+    const text = rsp.data;
+    if(text.hasOwnProperty('code')){
+      if(text.code == 400){
+        return null;
+      } else{
+        throw new Error(text.message);
+      }
+    }
+
     return [
-      data['datetime'],
-      data['open'],
-      data['high'],
-      data['low'],
-      data['close'],
-      data['volume'],
+      text.datetime,
+      text.open,
+      text.high,
+      text.low,
+      text.close,
+      text.volume,
     ];
   }
 }
