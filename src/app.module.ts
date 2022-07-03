@@ -9,7 +9,7 @@ import { UpdateModule } from './service/update.module';
 import { TestController } from './test/test.controller';
 import { TestService } from './test/test.service';
 import { RmdbModule } from './rmdb/rmdb.module';
-import { UpdateService } from './service/update.service'
+import { UpdateService } from './service/update.service';
 @Module({
   imports: [
     ScheduleModule.forRoot(),

@@ -3,7 +3,7 @@ import { RmdbModule } from 'src/rmdb/rmdb.module';
 import { initDataService } from './initData.service';
 
 @Module({
-  imports:[RmdbModule],
+  imports: [RmdbModule],
   providers: [initDataService],
 })
 export class InitDataModule {}

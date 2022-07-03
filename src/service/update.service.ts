@@ -36,6 +36,10 @@ export class UpdateService {
     this.updateTaskQue = new util.queue<db_rsp_symboltask>();
   }
 
+  testFunc(): void{
+    console.log('Hello world');
+  }
+
   async initSymbolTasks(): Promise<void> {
     await this.fillSymbolTasks();
     this.logger.log(`Init Symbol Tasks at ${util.getCurrentDateTime()}`);
@@ -77,8 +81,9 @@ export class UpdateService {
         endDateString,
       );
     } catch (e) {
-      this.logger.error(`task failed with error: ${e}`);
+      this.logger.warn(`task failed with error: ${e}`);
       this.errorTaskQue.push([task, TaskType.history]);
+      return null;
     }
 
     if (result == null) {
@@ -92,24 +97,23 @@ export class UpdateService {
       result.map((obj) => {
         obj.unshift(task.symbol);
         return obj;
-      })
-
+      });
       await this.rmdbService.bulkInsertTableData(task.table_name, result);
-      const oldestDate: Date = new Date(result[result.length-1][1]);
+      const oldestDate: Date = new Date(result[result.length - 1][1]);
       await this.rmdbService.updateOldestDate(
         task.table_name,
         task.id,
         oldestDate,
       );
     }
+    this.logger.log(`history data update at ${new Date()}`);
   }
 
   private async runUpdate() {
     const task: db_rsp_symboltask = this.updateTaskQue.pop();
     let result: string[][];
     try {
-      const updateDateTime: Date = new Date();
-      const endDate = util.convertDateToDateString(updateDateTime);
+      const endDate = util.convertDateToDateString(new Date());
       const startDate = util.convertDateToDateString(task.latest_date);
 
       result = await TwelveData.timeSeries(task.symbol, startDate, endDate);
@@ -118,6 +122,7 @@ export class UpdateService {
         `Symbol ${task.symbol} update failed, error ${e.message}`,
       );
       this.errorTaskQue.push([task, TaskType.update]);
+      return null;
     }
 
     if (result != null) {
@@ -135,24 +140,30 @@ export class UpdateService {
         latestDate,
       );
     }
+    this.logger.log(`Update data update at ${new Date()}`);
   }
 
-  async runDaily() {
+  private async runDaily() {
     const task: db_rsp_symboltask = this.dailyTaskQue.pop();
     const symbol = task.symbol;
     let result: string[] | null;
     try {
-      const result = await TwelveData.latest(symbol);
+      result = await TwelveData.latest(symbol);
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
       this.errorTaskQue.push([task, TaskType.daily]);
     }
-    if (result!= null){
+    if (result != null) {
       result.unshift(task.symbol);
       const latestDate = new Date(result[1]);
-      await this.rmdbService.updateLatestDate(task.table_name, task.id, latestDate);
+      await this.rmdbService.updateLatestDate(
+        task.table_name,
+        task.id,
+        latestDate,
+      );
       await this.rmdbService.insertTableData(task.table_name, result);
     }
+    this.logger.log(`Daily data update at ${new Date()}`);
   }
 
   private async fillSymbolTasks() {

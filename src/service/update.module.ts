@@ -3,7 +3,7 @@ import { RmdbModule } from 'src/rmdb/rmdb.module';
 import { UpdateService } from './update.service';
 
 @Module({
-  imports:[RmdbModule],
+  imports: [RmdbModule],
   providers: [UpdateService],
 })
 export class UpdateModule {}
