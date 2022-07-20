@@ -10,7 +10,8 @@ services:
       POSTGRES_PASSWORD: root
     ports:
       - "5432:5432"
-
+    networks:
+      - backend
 
   scheduler:
     restart: always
@@ -20,3 +21,9 @@ services:
     ports:
       - "3000:3000"
     command: npx prisma migrate dev && yarn start:dev
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
