@@ -3,7 +3,8 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { RmdbService } from './rmdb.service';
 
 @Module({
-  exports: [RmdbService, PrismaModule],
+  imports:[PrismaModule],
+  exports: [RmdbService],
   providers: [RmdbService],
 })
 export class RmdbModule { }

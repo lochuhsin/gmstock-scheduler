@@ -10,8 +10,8 @@ import {
 const format = require('pg-format');
 import settings from '../config';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
-import { PrismaService } from 'src/service/prisma.service';
 import { Logger } from '@nestjs/common';
+import { PrismaService } from 'src/service/prisma.service';
 
 @Injectable()
 export class RmdbService {
