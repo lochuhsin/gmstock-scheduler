@@ -1,17 +1,17 @@
 FROM node:18
 
-WORKDIR /
+WORKDIR /usr/src/app
 
-COPY . .
-
-#RUN npm install -g yarn
+COPY package*.json ./
 
 RUN yarn
 
+COPY . .
+
+RUN yarn build
+
 ENV DATABASE_URL="postgres://root:root@db:5432/postgres"
 
-CMD ["npx", "prisma", "migrate", "dev"]
+RUN npx prisma generate
 
-CMD ["yarn", "start:dev"]
-
-EXPOSE 3000
+CMD yarn start
