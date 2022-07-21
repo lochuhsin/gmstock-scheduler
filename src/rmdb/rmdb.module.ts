@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from 'src/service/prisma.service';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { RmdbService } from './rmdb.service';
 
 @Module({
-  exports:[RmdbService],
-  providers: [RmdbService, PrismaService],
+  exports: [RmdbService, PrismaModule],
+  providers: [RmdbService],
 })
-export class RmdbModule {}
+export class RmdbModule { }
