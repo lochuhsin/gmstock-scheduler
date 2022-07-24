@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { util } from '../util/util';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
-import { TwelveData } from '../third_party/twelveData';
 import settings from '../config';
 import { RmdbService } from 'src/rmdb/rmdb.service';
+import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
 
 enum TaskType {
   daily,
@@ -12,8 +12,8 @@ enum TaskType {
 }
 
 @Injectable()
-export class UpdateService {
-  private readonly logger = new Logger(UpdateService.name);
+export class UpdateInfoService {
+  private readonly logger = new Logger(UpdateInfoService.name);
   private readonly updateTaskQue: util.queue<db_rsp_symboltask>;
   private readonly dailyTaskQue: util.queue<db_rsp_symboltask>;
   private readonly historyTaskQue: util.queue<db_rsp_symboltask>;
@@ -30,13 +30,16 @@ export class UpdateService {
     'indices',
   ];
 
-  constructor(private readonly rmdbService: RmdbService) {
+  constructor(
+    private readonly twelveDataService: TwelveDataService,
+    private readonly rmdbService: RmdbService,
+  ) {
     this.historyTaskQue = new util.queue<db_rsp_symboltask>();
     this.dailyTaskQue = new util.queue<db_rsp_symboltask>();
     this.updateTaskQue = new util.queue<db_rsp_symboltask>();
   }
 
-  testFunc(): void{
+  testFunc(): void {
     console.log('Hello world');
   }
 
@@ -75,7 +78,7 @@ export class UpdateService {
 
     let result: string[][] | null;
     try {
-      result = await TwelveData.timeSeries(
+      result = await this.twelveDataService.timeSeries(
         task.symbol,
         startDateString,
         endDateString,
@@ -116,7 +119,7 @@ export class UpdateService {
       const endDate = util.convertDateToDateString(new Date());
       const startDate = util.convertDateToDateString(task.latest_date);
 
-      result = await TwelveData.timeSeries(task.symbol, startDate, endDate);
+      result = await this.twelveDataService.timeSeries(task.symbol, startDate, endDate);
     } catch (e) {
       this.logger.warn(
         `Symbol ${task.symbol} update failed, error ${e.message}`,
@@ -148,7 +151,7 @@ export class UpdateService {
     const symbol = task.symbol;
     let result: string[] | null;
     try {
-      result = await TwelveData.latest(symbol);
+      result = await this.twelveDataService.latest(symbol);
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
       this.errorTaskQue.push([task, TaskType.daily]);
@@ -176,7 +179,7 @@ export class UpdateService {
           this.historyTaskQue.push(obj);
         }
 
-        if (!UpdateService.isUpdated(obj.latest_date)) {
+        if (!UpdateInfoService.isUpdated(obj.latest_date)) {
           this.updateTaskQue.push(obj);
         }
 

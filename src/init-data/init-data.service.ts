@@ -1,12 +1,13 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { TwelveData } from '../third_party/twelveData';
-import { exec } from 'child_process';
-import settings from '../config';
 import { Client } from 'pg';
-const fs = require('fs');
-import { util } from '../util/util';
-import { PrismaService } from './prisma.service';
+import settings from 'src/config';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { RmdbService } from 'src/rmdb/rmdb.service';
+import { util } from 'src/util/util';
+const fs = require('fs');
+import { exec } from 'child_process';
+import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class initDataService implements OnModuleInit {
@@ -40,7 +41,8 @@ export class initDataService implements OnModuleInit {
   async fillSymbol(): Promise<void> {
     const waitTime = 1000; // ms
     const rmdbService = new RmdbService(new PrismaService());
-    const symbol = new symbolService(rmdbService);
+    const twelveDataService = new TwelveDataService(new HttpService());
+    const symbol = new symbolService(twelveDataService, rmdbService);
     const func_arr = [
       symbol.getInitStocks.bind(symbol),
       symbol.getInitForexPair.bind(symbol),
@@ -99,14 +101,17 @@ export class initDataService implements OnModuleInit {
 
 export class symbolService {
   public readonly logger = new Logger(initDataService.name);
-  constructor(private readonly rmdbService: RmdbService) {}
+  constructor(
+    private readonly twelveDataService: TwelveDataService,
+    private readonly rmdbService: RmdbService,
+  ) {}
 
   async getInitStocks(): Promise<void> {
     const row_count = await this.rmdbService.getRowCount('stocks');
     if (row_count > 0) {
       this.logger.log('stocks data exists, skip');
     } else {
-      const data = await TwelveData.allStocks();
+      const data = await this.twelveDataService.allStocks();
       await this.rmdbService.bulkInsertStocks(data);
       this.logger.log('stocks symbol initialized.');
     }
@@ -117,7 +122,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('forexpair data exists, skip');
     } else {
-      const data = await TwelveData.allForexPair();
+      const data = await this.twelveDataService.allForexPair();
       await this.rmdbService.bulkInsertForexPair(data);
       this.logger.log('forexpair symbol initialized.');
     }
@@ -128,7 +133,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('cryptocurrency data exists, skip');
     } else {
-      const data = await TwelveData.allCryptoCurrency();
+      const data = await this.twelveDataService.allCryptoCurrency();
       await this.rmdbService.bulkInsertCryptoCurrency(data);
       this.logger.log('cryptocurrency symbol initialized.');
     }
@@ -139,7 +144,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('etf data exists, skip');
     } else {
-      const data = await TwelveData.allETF();
+      const data = await this.twelveDataService.allETF();
       await this.rmdbService.bulkInsertETF(data);
       this.logger.log('etf symbol initialized.');
     }
@@ -150,7 +155,7 @@ export class symbolService {
     if (row_count > 0) {
       this.logger.log('indice data exists, skip');
     } else {
-      const data = await TwelveData.allIndices();
+      const data = await this.twelveDataService.allIndices();
       await this.rmdbService.bulkInsertIndice(data);
       this.logger.log('indice symbol initialized.');
     }

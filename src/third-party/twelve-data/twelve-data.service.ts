@@ -1,6 +1,7 @@
-import axios from 'axios';
+import { HttpService } from '@nestjs/axios';
+import { Injectable } from '@nestjs/common';
 import { parse } from 'csv-parse/sync';
-import settings from '../config';
+import settings from 'src/config';
 import { failed_obj, twelve_base } from 'src/dto/third_party/twelve_data/base';
 import {
   rsp_stocks,
@@ -10,56 +11,69 @@ import {
   rsp_indices,
 } from 'src/dto/third_party/twelve_data/stocks';
 
+@Injectable()
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace TwelveData {
-  export async function testFunc() {
+export class TwelveDataService {
+  constructor(private readonly httpService: HttpService) {}
+  async testFunc() {
     const url = 'https://api.twelvedata.com/market_state';
-    return await axios.get(url, {
+    return await this.httpService.axiosRef.get(url, {
       params: {
         apikey: settings.token['twelveData'],
       },
     });
   }
 
-  export async function allStocks(): Promise<rsp_stocks[]> {
+  async allStocks(): Promise<rsp_stocks[]> {
     const url = 'https://api.twelvedata.com/stocks';
     const params = {
       country: 'Taiwan',
     };
-    const rsp = await axios.get<twelve_base<rsp_stocks[]>>(url, {
-      params: params,
-    });
+    const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_stocks[]>>(
+      url,
+      {
+        params: params,
+      },
+    );
     return rsp.data.data;
   }
 
-  export async function allForexPair(): Promise<rsp_forexpair[]> {
+  async allForexPair(): Promise<rsp_forexpair[]> {
     const url = 'https://api.twelvedata.com/forex_pairs';
-    const rsp = await axios.get<twelve_base<rsp_forexpair[]>>(url);
+    const rsp = await this.httpService.axiosRef.get<
+      twelve_base<rsp_forexpair[]>
+    >(url);
     return rsp.data.data;
   }
 
-  export async function allCryptoCurrency(): Promise<rsp_cryptocurrency[]> {
+  async allCryptoCurrency(): Promise<rsp_cryptocurrency[]> {
     const url = 'https://api.twelvedata.com/cryptocurrencies';
-    const rsp = await axios.get<twelve_base<rsp_cryptocurrency[]>>(url);
+    const rsp = await this.httpService.axiosRef.get<
+      twelve_base<rsp_cryptocurrency[]>
+    >(url);
     return rsp.data.data;
   }
 
-  export async function allETF(): Promise<rsp_etf[]> {
+  async allETF(): Promise<rsp_etf[]> {
     const url = 'https://api.twelvedata.com/etf';
-    const rsp = await axios.get<twelve_base<rsp_etf[]>>(url);
+    const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_etf[]>>(
+      url,
+    );
     return rsp.data.data;
   }
 
-  export async function allIndices(): Promise<rsp_indices[]> {
+  async allIndices(): Promise<rsp_indices[]> {
     const url = 'https://api.twelvedata.com/indices';
-    const rsp = await axios.get<twelve_base<rsp_indices[]>>(url);
+    const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_indices[]>>(
+      url,
+    );
     return rsp.data.data;
   }
 
   // https://twelvedata.com/docs#time-series
   // symbol: database symbol column
   // startDate, endDate format: '2000-01-01' or '2000-01-01 12:60:60'
-  export async function timeSeries(
+  async timeSeries(
     symbol: string,
     startDate: string,
     endDate: string,
@@ -75,7 +89,7 @@ export namespace TwelveData {
       format: 'csv',
     };
 
-    const rsp = await axios.get(url, {
+    const rsp = await this.httpService.axiosRef.get(url, {
       params: params,
     });
     const data = rsp.data;
@@ -97,22 +111,22 @@ export namespace TwelveData {
 
   // only return specific columns, there are more data originally
   // https://twelvedata.com/docs#quote
-  export async function latest(symbol: string) {
+  async latest(symbol: string) {
     const url = 'https://api.twelvedata.com/quote';
     const params = {
       apikey: settings.token['twelveData'],
       symbol: symbol,
       interval: '1day',
     };
-    const rsp = await axios.get<any>(url, {
+    const rsp = await this.httpService.axiosRef.get<any>(url, {
       params: params,
     });
 
     const text = rsp.data;
-    if(text.hasOwnProperty('code')){
-      if(text.code == 400){
+    if (text.hasOwnProperty('code')) {
+      if (text.code == 400) {
         return null;
-      } else{
+      } else {
         throw new Error(text.message);
       }
     }

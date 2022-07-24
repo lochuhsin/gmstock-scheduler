@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { RmdbService } from 'src/rmdb/rmdb.service';
-import { TwelveData } from 'src/third_party/twelveData';
+import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
 
 @Injectable()
 export class TestService {
-  constructor(private readonly rmdbService: RmdbService) {}
+  constructor(
+    private readonly twelveDataService: TwelveDataService,
+    private readonly rmdbService: RmdbService,
+  ) {}
 
   async test() {
-    const data = await TwelveData.allStocks();
+    const data = await this.twelveDataService.allStocks();
     return await this.rmdbService.bulkInsertStocks(data.slice(0, 5));
   }
 }

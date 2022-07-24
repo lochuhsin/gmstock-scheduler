@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { UpdateService } from 'src/service/update.service';
+import { UpdateInfoService } from 'src/update-info/update-info.service';
 
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
 
-  constructor(private readonly updateService: UpdateService) {}
+  constructor(private readonly updateService: UpdateInfoService) {}
 
   @Cron(CronExpression.EVERY_10_HOURS)
   async SampleJob() {

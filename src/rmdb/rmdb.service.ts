@@ -11,7 +11,7 @@ const format = require('pg-format');
 import settings from '../config';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import { Logger } from '@nestjs/common';
-import { PrismaService } from 'src/service/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class RmdbService {
