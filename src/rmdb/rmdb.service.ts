@@ -123,6 +123,43 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
+  async bulkUpsertStocks(inputs: rsp_stocks[]): Promise<any> {
+    const currentTime = new Date();
+    return await this.prisma.$transaction(
+      inputs.map((stock) =>
+        this.prisma.stocks.upsert({
+          where: {
+            symbol_mic_code: {
+              symbol: stock.symbol,
+              mic_code: stock.mic_code,
+            },
+          },
+          update: {
+            symbol: stock.symbol,
+            name: stock.name,
+            currency: stock.currency,
+            exchange: stock.exchange,
+            mic_code: stock.mic_code,
+            country: stock.country,
+            type: stock.type,
+          },
+          create: {
+            symbol: stock.symbol,
+            name: stock.name,
+            currency: stock.currency,
+            exchange: stock.exchange,
+            mic_code: stock.mic_code,
+            country: stock.country,
+            type: stock.type,
+            latest_date: currentTime,
+            oldest_date: currentTime,
+            ishistorydatafinished: false,
+          },
+        }),
+      ),
+    );
+  }
+
   async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
@@ -144,6 +181,37 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
+  async bulkUpsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
+    const currentTime = new Date();
+    return await this.prisma.$transaction(
+      inputs.map((forex) =>
+        this.prisma.forexpair.upsert({
+          where: {
+            symbol_currency_base: {
+              symbol: forex.symbol,
+              currency_base: forex.currency_base,
+            },
+          },
+          update: {
+            symbol: forex.symbol,
+            currency_group: forex.currency_group,
+            currency_base: forex.currency_base,
+            currency_quote: forex.currency_quote,
+          },
+          create: {
+            symbol: forex.symbol,
+            currency_group: forex.currency_group,
+            currency_base: forex.currency_base,
+            currency_quote: forex.currency_quote,
+            latest_date: currentTime,
+            oldest_date: currentTime,
+            ishistorydatafinished: false,
+          },
+        }),
+      ),
+    );
+  }
+
   async bulkInsertCryptoCurrency(inputs: rsp_cryptocurrency[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
@@ -163,6 +231,37 @@ export class RmdbService {
         data: data,
       })
       .catch((d) => this.logger.error(d));
+  }
+
+  async bulkUpsertCryptoCurrency(inputs: rsp_cryptocurrency[]): Promise<any> {
+    const currentTime = new Date();
+    return await this.prisma.$transaction(
+      inputs.map((crypto) =>
+        this.prisma.cryptocurrency.upsert({
+          where: {
+            symbol_currency_base: {
+              symbol: crypto.symbol,
+              currency_base: crypto.currency_base,
+            },
+          },
+          update: {
+            symbol: crypto.symbol,
+            available_exchange: crypto.available_exchanges.toString(),
+            currency_base: crypto.currency_base,
+            currency_quote: crypto.currency_quote,
+          },
+          create: {
+            symbol: crypto.symbol,
+            available_exchange: crypto.available_exchanges.toString(),
+            currency_base: crypto.currency_base,
+            currency_quote: crypto.currency_quote,
+            latest_date: currentTime,
+            oldest_date: currentTime,
+            ishistorydatafinished: false,
+          },
+        }),
+      ),
+    );
   }
 
   async bulkInsertETF(inputs: rsp_etf[]): Promise<any> {
