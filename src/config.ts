@@ -21,7 +21,7 @@ settings.postgres = {
   user: 'root',
   password: 'root',
   database: 'postgres',
-  host: 'localhost',
+  host: 'db',
   port: 5432,
 };
 

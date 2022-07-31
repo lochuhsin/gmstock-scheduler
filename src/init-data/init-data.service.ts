@@ -18,21 +18,9 @@ export class initDataService implements OnModuleInit {
 
     await this.testDBConnection();
 
-    this.checkStartScript(scriptPath);
-    await this.migration(scriptPath);
     await this.fillSymbol();
 
     this.logger.log(`The module has been initialized.`);
-  }
-
-  async migration(scriptPath: string): Promise<void> {
-    const linux_liked_os = ['linux', 'darwin'];
-    if (linux_liked_os.includes(process.platform)) {
-      // exec migration script
-      await this.runMigration(scriptPath);
-    } else {
-      this.logger.log('Skip migration.');
-    }
   }
 
   /**
@@ -69,19 +57,6 @@ export class initDataService implements OnModuleInit {
       callback('ok!');
       this.logger.log('database connection successful');
     });
-  }
-
-  checkStartScript(path: string): void {
-    try {
-      if (!fs.existsSync(path)) {
-        this.logger.log('startScript.sh not found');
-        process.exit(1);
-      }
-    } catch (err) {
-      this.logger.error(err);
-      process.exit(1);
-    }
-    this.logger.log('script detected');
   }
 
   async runMigration(path: string): Promise<string> {
