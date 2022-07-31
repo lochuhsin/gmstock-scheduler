@@ -12,8 +12,6 @@ RUN yarn build
 
 ENV DATABASE_URL="postgres://root:root@db:5432/postgres"
 
-RUN npx prisma generate
+RUN yarn prisma generate
 
-RUN npx prisma dev
-
-CMD yarn start
+CMD yarn start:migrate:prod
