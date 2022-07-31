@@ -115,6 +115,42 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
+  async bulkUpsertStocks(inputs: rsp_stocks[]): Promise<any> {
+    const currentTime = new Date();
+
+    return await this.prisma.$transaction(
+      inputs.map((stock) => (
+        this.prisma.stocks.upsert({
+          where: {
+            symbol: stock.symbol,
+            country: stock.country,
+          },
+          update: {
+            name: stock.name,
+            currency: stock.currency,
+            exchange: stock.exchange,
+            mic_code: stock.mic_code,
+            country: stock.country,
+            type: stock.type,
+            ishistorydatafinished: false,
+          },
+          create: {
+            symbol: stock.symbol,
+            name: stock.name,
+            currency: stock.currency,
+            exchange: stock.exchange,
+            mic_code: stock.mic_code,
+            country: stock.country,
+            type: stock.type,
+            latest_date: currentTime,
+            oldest_date: currentTime,
+            ishistorydatafinished: false,
+          },
+        })
+      ))
+    );
+  }
+
   async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
