@@ -26,14 +26,8 @@ export class TwelveDataService {
 
   async allStocks(): Promise<rsp_stocks[]> {
     const url = 'https://api.twelvedata.com/stocks';
-    const params = {
-      country: 'Taiwan',
-    };
     const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_stocks[]>>(
       url,
-      {
-        params: params,
-      },
     );
     return rsp.data.data;
   }

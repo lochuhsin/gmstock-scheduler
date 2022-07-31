@@ -23,7 +23,7 @@ model stocks {
     oldest_date           DateTime
     ishistorydatafinished Boolean
 
-    @@unique([symbol, country])
+    @@unique([symbol, mic_code])
 }
 
 model forexpair {
@@ -35,6 +35,8 @@ model forexpair {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+
+    @@unique([symbol, currency_base])
 }
 
 model cryptocurrency {
@@ -46,6 +48,8 @@ model cryptocurrency {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+
+    @@unique([symbol, currency_base])
 }
 
 model etf {

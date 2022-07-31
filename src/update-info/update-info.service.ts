@@ -51,23 +51,33 @@ export class UpdateInfoService {
   async runSymbolTasks(): Promise<void> {
     if (this.leftAPICount > 0) {
       if (this.historyTaskQue.getSize() > 0) {
-        await this.runHistory(); // finished
+        await this.runHistory();
         this.leftAPICount--;
+      } else {
+        this.logger.log('history task queue is empty');
       }
 
       if (this.updateTaskQue.getSize() > 0) {
         await this.runUpdate();
         this.leftAPICount--;
+      } else {
+        this.logger.log('update task queue is empty');
       }
 
       if (this.dailyTaskQue.getSize() > 0) {
         await this.runDaily();
         this.leftAPICount--;
+      } else {
+        this.logger.log('daily task queue is empty');
       }
     }
   }
 
   private async runHistory(): Promise<void> {
+    this.logger.log(
+      `running history task queue, task amount: ${this.historyTaskQue.getSize()}`,
+    );
+
     const task: db_rsp_symboltask = this.historyTaskQue.pop();
     const endDate = task.oldest_date;
     const copyDate = new Date(endDate.valueOf());
@@ -113,6 +123,9 @@ export class UpdateInfoService {
   }
 
   private async runUpdate() {
+    this.logger.log(
+      `running update task queue, task amount: ${this.updateTaskQue.getSize()}`,
+    );
     const task: db_rsp_symboltask = this.updateTaskQue.pop();
     let result: string[][];
     try {
@@ -147,6 +160,9 @@ export class UpdateInfoService {
   }
 
   private async runDaily() {
+    this.logger.log(
+      `running daily task queue, task amount: ${this.dailyTaskQue.getSize()}`,
+    );
     const task: db_rsp_symboltask = this.dailyTaskQue.pop();
     const symbol = task.symbol;
     let result: string[] | null;

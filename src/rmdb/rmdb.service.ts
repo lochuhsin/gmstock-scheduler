@@ -33,7 +33,7 @@ export class RmdbService {
   }
 
   async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
-    const res =  await this.prisma[tableName].findMany({
+    const res = await this.prisma[tableName].findMany({
       select: {
         id: true,
         symbol: true,
@@ -43,13 +43,17 @@ export class RmdbService {
       },
     });
 
-    return res.map((obj)=> {
+    return res.map((obj) => {
       obj['table_name'] = tableName;
       return obj;
-    })
+    });
   }
 
-  async updateLatestDate(tableName: string, id: number, date: Date): Promise<void> {
+  async updateLatestDate(
+    tableName: string,
+    id: number,
+    date: Date,
+  ): Promise<void> {
     await this.prisma[tableName]
       .update({
         where: {
@@ -61,7 +65,11 @@ export class RmdbService {
       })
       .catch((d) => this.logger.error(d));
   }
-  async updateOldestDate(tableName: string, id: number, date: Date): Promise<void> {
+  async updateOldestDate(
+    tableName: string,
+    id: number,
+    date: Date,
+  ): Promise<void> {
     await this.prisma[tableName]
       .update({
         where: {
@@ -113,42 +121,6 @@ export class RmdbService {
         data: data,
       })
       .catch((d) => this.logger.error(d));
-  }
-
-  async bulkUpsertStocks(inputs: rsp_stocks[]): Promise<any> {
-    const currentTime = new Date();
-
-    return await this.prisma.$transaction(
-      inputs.map((stock) => (
-        this.prisma.stocks.upsert({
-          where: {
-            symbol: stock.symbol,
-            country: stock.country,
-          },
-          update: {
-            name: stock.name,
-            currency: stock.currency,
-            exchange: stock.exchange,
-            mic_code: stock.mic_code,
-            country: stock.country,
-            type: stock.type,
-            ishistorydatafinished: false,
-          },
-          create: {
-            symbol: stock.symbol,
-            name: stock.name,
-            currency: stock.currency,
-            exchange: stock.exchange,
-            mic_code: stock.mic_code,
-            country: stock.country,
-            type: stock.type,
-            latest_date: currentTime,
-            oldest_date: currentTime,
-            ishistorydatafinished: false,
-          },
-        })
-      ))
-    );
   }
 
   async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
@@ -216,6 +188,41 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
+  async bulkUpsertETF(inputs: rsp_etf[]): Promise<any> {
+    const currentTime = new Date();
+    return await this.prisma.$transaction(
+      inputs.map((etf) =>
+        this.prisma.etf.upsert({
+          where: {
+            symbol_mic_code: {
+              symbol: etf.symbol,
+              mic_code: etf.mic_code,
+            },
+          },
+          update: {
+            symbol: etf.symbol,
+            name: etf.name,
+            currency: etf.currency,
+            exchange: etf.exchange,
+            mic_code: etf.mic_code,
+            country: etf.country,
+          },
+          create: {
+            symbol: etf.symbol,
+            name: etf.name,
+            currency: etf.currency,
+            exchange: etf.exchange,
+            mic_code: etf.mic_code,
+            country: etf.country,
+            latest_date: currentTime,
+            oldest_date: currentTime,
+            ishistorydatafinished: false,
+          },
+        }),
+      ),
+    );
+  }
+
   async bulkInsertIndice(inputs: rsp_indices[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
@@ -237,8 +244,42 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
+  async bulkUpsertIndice(inputs: rsp_etf[]): Promise<any> {
+    const currentTime = new Date();
+    return await this.prisma.$transaction(
+      inputs.map((indice) =>
+        this.prisma.indices.upsert({
+          where: {
+            symbol_country: {
+              symbol: indice.symbol,
+              country: indice.country,
+            },
+          },
+          update: {
+            symbol: indice.symbol,
+            name: indice.name,
+            country: indice.country,
+            currency: indice.currency,
+          },
+          create: {
+            symbol: indice.symbol,
+            name: indice.name,
+            country: indice.country,
+            currency: indice.currency,
+            latest_date: currentTime,
+            oldest_date: currentTime,
+            ishistorydatafinished: false,
+          },
+        }),
+      ),
+    );
+  }
+
   // input data format : symbol, datetime, open, high, low, close, volume
-  async bulkInsertTableData(tableName: string, data: string[][]): Promise<void> {
+  async bulkInsertTableData(
+    tableName: string,
+    data: string[][],
+  ): Promise<void> {
     const dataTableName = tableName + 'data';
     const query = format(
       `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
