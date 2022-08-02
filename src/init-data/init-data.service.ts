@@ -4,8 +4,6 @@ import settings from 'src/config';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RmdbService } from 'src/rmdb/rmdb.service';
 import { util } from 'src/util/util';
-const fs = require('fs');
-import { exec } from 'child_process';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
 import { HttpService } from '@nestjs/axios';
 
@@ -14,8 +12,6 @@ export class initDataService implements OnModuleInit {
   logger = new Logger(initDataService.name);
 
   async onModuleInit(): Promise<void> {
-    const scriptPath = settings.startScript['path'];
-
     await this.testDBConnection();
 
     await this.fillSymbol();
@@ -56,20 +52,6 @@ export class initDataService implements OnModuleInit {
       });
       callback('ok!');
       this.logger.log('database connection successful');
-    });
-  }
-
-  async runMigration(path: string): Promise<string> {
-    return new Promise((callback) => {
-      exec('sh ' + path, (error, stdout, stderr) => {
-        this.logger.log(stdout);
-        if (error !== null) {
-          this.logger.log(`exec error: ${error}`);
-          return;
-        }
-        callback('Script finished success');
-        this.logger.log('migration finished');
-      });
     });
   }
 }
