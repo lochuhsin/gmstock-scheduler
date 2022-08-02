@@ -4,6 +4,14 @@ import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import settings from '../config';
 import { RmdbService } from 'src/rmdb/rmdb.service';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
+import {
+  rsp_stocks,
+  rsp_forexpair,
+  rsp_cryptocurrency,
+  rsp_etf,
+  rsp_indices,
+} from 'src/dto/third_party/twelve_data/stocks';
+
 
 enum TaskType {
   daily,
@@ -19,7 +27,7 @@ export class UpdateInfoService {
   private readonly historyTaskQue: util.queue<db_rsp_symboltask>;
   private readonly errorTaskQue: util.queue<[db_rsp_symboltask, TaskType]>;
 
-  private leftAPICount = settings.api['apicount'];
+  private leftAPICount = 0;
   private readonly historyInterval = settings.api['historyInterval']; //day
 
   private readonly tableList = [
@@ -42,28 +50,51 @@ export class UpdateInfoService {
   testFunc(): void {
     console.log('Hello world');
   }
+  public async initApiCount(): Promise<void> {
+    this.leftAPICount = settings.api['apicount'];
+  }
 
-  async initSymbolTasks(): Promise<void> {
+  public async initSymbolTasks(): Promise<void> {
     await this.fillSymbolTasks();
     this.logger.log(`Init Symbol Tasks at ${util.getCurrentDateTime()}`);
   }
 
-  async runSymbolTasks(): Promise<void> {
+  public getCurrentAPICount(): number {
+    return this.leftAPICount;
+  }
+
+  public async updateSymbolTables(): Promise<void> {
+    const stock: rsp_stocks[] = await this.twelveDataService.allStocks();
+    await this.rmdbService.bulkUpsertStocks(stock);
+
+    const forexpair: rsp_forexpair[] =
+      await this.twelveDataService.allForexPair();
+
+    const cryptocurrency: rsp_cryptocurrency[] =
+      await this.twelveDataService.allCryptoCurrency();
+    const etf: rsp_etf[] = await this.twelveDataService.allETF();
+    const indices: rsp_indices[] = await this.twelveDataService.allIndices();
+  }
+
+  public async runSymbolTasks(): Promise<void> {
     if (this.leftAPICount > 0) {
       if (this.historyTaskQue.getSize() > 0) {
-        await this.runHistory(); // finished
+        await this.runHistory();
         this.leftAPICount--;
       }
+      this.logger.log(`API count left ${this.leftAPICount}`);
 
       if (this.updateTaskQue.getSize() > 0) {
         await this.runUpdate();
         this.leftAPICount--;
       }
+      this.logger.log(`API count left ${this.leftAPICount}`);
 
       if (this.dailyTaskQue.getSize() > 0) {
         await this.runDaily();
         this.leftAPICount--;
       }
+      this.logger.log(`API count left ${this.leftAPICount}`);
     }
   }
 

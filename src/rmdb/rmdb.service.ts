@@ -43,7 +43,7 @@ export class RmdbService {
       },
     });
 
-    return res.map((obj)=> {
+    return res.map((obj) => {
       obj['table_name'] = tableName;
       return obj;
     })
@@ -119,7 +119,7 @@ export class RmdbService {
     const currentTime = new Date();
 
     return await this.prisma.$transaction(
-      inputs.map((stock) => (
+      inputs.map((stock) =>
         this.prisma.stocks.upsert({
           where: {
             symbol: stock.symbol,
@@ -238,7 +238,10 @@ export class RmdbService {
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
-  async bulkInsertTableData(tableName: string, data: string[][]): Promise<void> {
+  async bulkInsertTableData(
+    tableName: string,
+    data: string[][],
+  ): Promise<void> {
     const dataTableName = tableName + 'data';
     const query = format(
       `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
