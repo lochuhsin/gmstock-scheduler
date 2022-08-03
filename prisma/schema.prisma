@@ -22,6 +22,7 @@ model stocks {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+    table_update_date    DateTime
 
     @@unique([symbol, mic_code])
 }
@@ -35,6 +36,8 @@ model forexpair {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+    table_update_date    DateTime
+
 
     @@unique([symbol, currency_base])
 }
@@ -48,6 +51,8 @@ model cryptocurrency {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+    table_update_date    DateTime
+
 
     @@unique([symbol, currency_base])
 }
@@ -63,6 +68,8 @@ model etf {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+    table_update_date    DateTime
+
 
     @@unique([symbol, mic_code])
 }
@@ -76,6 +83,7 @@ model indices {
     latest_date           DateTime
     oldest_date           DateTime
     ishistorydatafinished Boolean
+    table_update_date    DateTime
 
     @@unique([symbol, country])
 }

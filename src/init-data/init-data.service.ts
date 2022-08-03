@@ -12,8 +12,10 @@ export class initDataService implements OnModuleInit {
   logger = new Logger(initDataService.name);
 
   async onModuleInit(): Promise<void> {
+    this.logger.log('start checking db');
     await this.testDBConnection();
 
+    this.logger.log('start filling symbols');
     await this.fillSymbol();
 
     this.logger.log(`The module has been initialized.`);
@@ -23,6 +25,7 @@ export class initDataService implements OnModuleInit {
    * filled up with initial data list
    */
   async fillSymbol(): Promise<void> {
+    this.logger.log(`start filling init symbols`);
     const waitTime = 1000; // ms
     const rmdbService = new RmdbService(new PrismaService());
     const twelveDataService = new TwelveDataService(new HttpService());

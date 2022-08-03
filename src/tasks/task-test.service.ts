@@ -8,15 +8,11 @@ export class TasksService {
 
   constructor(private readonly updateService: UpdateInfoService) {}
 
-  @Cron(CronExpression.EVERY_10_HOURS)
-  async SampleJob() {
-    this.logger.debug("OMG!!! It's cronjob!!");
-  }
-
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async initializeTaskQue() {
-    const leftAPICount = this.updateService.getCurrentAPICount();
-    this.logger.log(`left api count: ${leftAPICount}`);
+    this.logger.log(
+      `left api count: ${this.updateService.getCurrentAPICount()}`,
+    );
 
     await this.updateService.initApiCount();
     this.logger.log('ApiCount initialized');
@@ -25,8 +21,22 @@ export class TasksService {
     this.logger.log('Symbol tasks initialized');
   }
 
-  @Cron('*/2 * * * * *')
-  async RunTasks(): Promise<void> {
+  @Cron('*/20 * * * * *')
+  async runTasks(): Promise<void> {
     await this.updateService.runSymbolTasks();
+  }
+
+  @Cron('0 */15 * * * *')
+  async updateSymbolTable(): Promise<void> {
+    this.logger.log(
+      `Start updating symbol tables, current time: ${new Date()}`,
+    );
+    await this.updateService.updateSymbolTables();
+    this.logger.log(`Update finished at: ${new Date()}`);
+  }
+
+  @Cron('0 */5 * * * *')
+  async systemHealthCheck(): Promise<void> {
+    this.logger.log(`[Heart Beat per 5 min] system still alive`);
   }
 }

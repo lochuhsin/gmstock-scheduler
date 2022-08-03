@@ -12,7 +12,6 @@ import {
   rsp_indices,
 } from 'src/dto/third_party/twelve_data/stocks';
 
-
 enum TaskType {
   daily,
   update,
@@ -21,6 +20,7 @@ enum TaskType {
 
 @Injectable()
 export class UpdateInfoService {
+  private readonly waitTime = 1000; // ms
   private readonly logger = new Logger(UpdateInfoService.name);
   private readonly updateTaskQue: util.queue<db_rsp_symboltask>;
   private readonly dailyTaskQue: util.queue<db_rsp_symboltask>;
@@ -66,14 +66,25 @@ export class UpdateInfoService {
   public async updateSymbolTables(): Promise<void> {
     const stock: rsp_stocks[] = await this.twelveDataService.allStocks();
     await this.rmdbService.bulkUpsertStocks(stock);
+    await util.sleep(this.waitTime);
 
     const forexpair: rsp_forexpair[] =
       await this.twelveDataService.allForexPair();
+    await this.rmdbService.bulkUpsertForexPair(forexpair);
+    await util.sleep(this.waitTime);
 
     const cryptocurrency: rsp_cryptocurrency[] =
       await this.twelveDataService.allCryptoCurrency();
+    await this.rmdbService.bulkUpsertCryptoCurrency(cryptocurrency);
+    await util.sleep(this.waitTime);
+
     const etf: rsp_etf[] = await this.twelveDataService.allETF();
+    await this.rmdbService.bulkUpsertETF(etf);
+    await util.sleep(this.waitTime);
+
     const indices: rsp_indices[] = await this.twelveDataService.allIndices();
+    await this.rmdbService.bulkUpsertIndice(indices);
+    await util.sleep(this.waitTime);
   }
 
   public async runSymbolTasks(): Promise<void> {

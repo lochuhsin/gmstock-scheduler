@@ -113,6 +113,7 @@ export class RmdbService {
         latest_date: currentTime,
         oldest_date: currentTime,
         ishistorydatafinished: false,
+        table_update_date: currentTime,
       };
     });
 
@@ -142,6 +143,7 @@ export class RmdbService {
             mic_code: stock.mic_code,
             country: stock.country,
             type: stock.type,
+            table_update_date: currentTime,
           },
           create: {
             symbol: stock.symbol,
@@ -154,6 +156,7 @@ export class RmdbService {
             latest_date: currentTime,
             oldest_date: currentTime,
             ishistorydatafinished: false,
+            table_update_date: currentTime,
           },
         }),
       ),
@@ -171,6 +174,7 @@ export class RmdbService {
         latest_date: currentTime,
         oldest_date: currentTime,
         ishistorydatafinished: false,
+        table_update_date: currentTime,
       };
     });
 
@@ -197,6 +201,7 @@ export class RmdbService {
             currency_group: forex.currency_group,
             currency_base: forex.currency_base,
             currency_quote: forex.currency_quote,
+            table_update_date: currentTime,
           },
           create: {
             symbol: forex.symbol,
@@ -206,6 +211,7 @@ export class RmdbService {
             latest_date: currentTime,
             oldest_date: currentTime,
             ishistorydatafinished: false,
+            table_update_date: currentTime,
           },
         }),
       ),
@@ -223,6 +229,7 @@ export class RmdbService {
         latest_date: currentTime,
         oldest_date: currentTime,
         ishistorydatafinished: false,
+        table_update_date: currentTime,
       };
     });
 
@@ -249,6 +256,7 @@ export class RmdbService {
             available_exchange: crypto.available_exchanges.toString(),
             currency_base: crypto.currency_base,
             currency_quote: crypto.currency_quote,
+            table_update_date: currentTime
           },
           create: {
             symbol: crypto.symbol,
@@ -258,6 +266,7 @@ export class RmdbService {
             latest_date: currentTime,
             oldest_date: currentTime,
             ishistorydatafinished: false,
+            table_update_date: currentTime,
           },
         }),
       ),
@@ -277,6 +286,7 @@ export class RmdbService {
         latest_date: currentTime,
         oldest_date: currentTime,
         ishistorydatafinished: false,
+        table_update_date: currentTime,
       };
     });
 
@@ -305,6 +315,7 @@ export class RmdbService {
             exchange: etf.exchange,
             mic_code: etf.mic_code,
             country: etf.country,
+            table_update_date: currentTime,
           },
           create: {
             symbol: etf.symbol,
@@ -316,6 +327,7 @@ export class RmdbService {
             latest_date: currentTime,
             oldest_date: currentTime,
             ishistorydatafinished: false,
+            table_update_date: currentTime,
           },
         }),
       ),
@@ -333,6 +345,7 @@ export class RmdbService {
         latest_date: currentTime,
         oldest_date: currentTime,
         ishistorydatafinished: false,
+        table_update_date: currentTime,
       };
     });
 
@@ -343,7 +356,7 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  async bulkUpsertIndice(inputs: rsp_etf[]): Promise<any> {
+  async bulkUpsertIndice(inputs: rsp_indices[]): Promise<any> {
     const currentTime = new Date();
     return await this.prisma.$transaction(
       inputs.map((indice) =>
@@ -359,6 +372,7 @@ export class RmdbService {
             name: indice.name,
             country: indice.country,
             currency: indice.currency,
+            table_update_date: currentTime,
           },
           create: {
             symbol: indice.symbol,
@@ -368,6 +382,7 @@ export class RmdbService {
             latest_date: currentTime,
             oldest_date: currentTime,
             ishistorydatafinished: false,
+            table_update_date: currentTime,
           },
         }),
       ),
