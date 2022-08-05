@@ -174,7 +174,11 @@ export class UpdateInfoService {
       const endDate = util.convertDateToDateString(new Date());
       const startDate = util.convertDateToDateString(task.latest_date);
 
-      result = await this.twelveDataService.timeSeries(task.symbol, startDate, endDate);
+      result = await this.twelveDataService.timeSeries(
+        task.symbol,
+        startDate,
+        endDate,
+      );
     } catch (e) {
       this.logger.warn(
         `Symbol ${task.symbol} update failed, error ${e.message}`,

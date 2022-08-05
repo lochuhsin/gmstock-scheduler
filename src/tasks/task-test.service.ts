@@ -26,14 +26,14 @@ export class TasksService {
     await this.updateService.runSymbolTasks();
   }
 
-  @Cron('0 */15 * * * *')
-  async updateSymbolTable(): Promise<void> {
-    this.logger.log(
-      `Start updating symbol tables, current time: ${new Date()}`,
-    );
-    await this.updateService.updateSymbolTables();
-    this.logger.log(`Update finished at: ${new Date()}`);
-  }
+  // @Cron('0 */15 * * * *')
+  // async updateSymbolTable(): Promise<void> {
+  //   this.logger.log(
+  //     `Start updating symbol tables, current time: ${new Date()}`,
+  //   );
+  //   await this.updateService.updateSymbolTables();
+  //   this.logger.log(`Update finished at: ${new Date()}`);
+  // }
 
   @Cron('0 */5 * * * *')
   async systemHealthCheck(): Promise<void> {
