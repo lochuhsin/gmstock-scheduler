@@ -9,6 +9,8 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('grandma scheduler api')
     .setDescription('This is Grandma-Scheduler API documentation')
+    .setVersion('1.0')
+    .addTag('API')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
