@@ -4,6 +4,8 @@ interface config {
 
 const settings: config = {};
 
+settings.twelveData = { plan: 'Basic', global: ['Level A'] };
+
 settings.api = { apicount: 44 * 60 * 24, historyinterval: 4500 };
 
 settings.startScript = { path: './startScript.sh' };

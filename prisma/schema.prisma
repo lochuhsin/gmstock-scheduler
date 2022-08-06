@@ -24,6 +24,8 @@ model stocks {
     oldest_date           DateTime
     ishistorydatafinished Boolean
     table_update_date    DateTime
+    global                String   @default("Level A")
+    plan                  String   @default("Basic")
 
     @@unique([symbol, mic_code])
 }
@@ -55,6 +57,7 @@ model cryptocurrency {
     table_update_date    DateTime
 
 
+
     @@unique([symbol, currency_base])
 }
 
@@ -70,6 +73,8 @@ model etf {
     oldest_date           DateTime
     ishistorydatafinished Boolean
     table_update_date    DateTime
+    global                String   @default("Level A")
+    plan                  String   @default("Basic")
 
 
     @@unique([symbol, mic_code])
@@ -85,6 +90,8 @@ model indices {
     oldest_date           DateTime
     ishistorydatafinished Boolean
     table_update_date    DateTime
+    global                String   @default("Level A")
+    plan                  String   @default("Basic")
 
     @@unique([symbol, country])
 }

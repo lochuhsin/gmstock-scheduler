@@ -6,13 +6,12 @@ import {
   rsp_cryptocurrency,
   rsp_etf,
   rsp_indices,
-} from 'src/dto/third_party/twelve_data/stocks';
+} from 'src/dto/third_party/twelve_data/data';
 const format = require('pg-format');
 import settings from '../config';
 import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { exists } from 'fs';
 
 @Injectable()
 export class RmdbService {
@@ -29,28 +28,75 @@ export class RmdbService {
       }
     });
   }
-  async getRowCount(tableName: string): Promise<number> {
+  public async getRowCount(tableName: string): Promise<number> {
     return await this.prisma[tableName].count();
   }
 
-  async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
-    const res = await this.prisma[tableName].findMany({
-      select: {
-        id: true,
-        symbol: true,
-        latest_date: true,
-        oldest_date: true,
-        ishistorydatafinished: true,
-      },
-    });
+  private async getSymbolTaskWithPlanFilter(
+    tableName: string,
+  ): Promise<db_rsp_symboltask[]> {
+    const twelveDataConfig = settings.twelveDataConfig;
+    const currentPlan = twelveDataConfig.plan;
 
+    let res: any;
+    if (currentPlan == 'Basic') {
+      res = await this.prisma[tableName].findMany({
+        where: {
+          plan: 'Basic',
+        },
+        select: {
+          id: true,
+          symbol: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    } else {
+      const globalFilterObj: object[] = [];
+      for (const global of twelveDataConfig.global) {
+        globalFilterObj.push({
+          global: global,
+        });
+      }
+      res = await this.prisma[tableName].findMany({
+        where: {
+          OR: globalFilterObj,
+        },
+        select: {
+          id: true,
+          symbol: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    }
+    return res;
+  }
+
+  public async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
+    let res: any;
+    if (tableName == 'stocks' || tableName == 'etf' || tableName == 'indices') {
+      res = await this.getSymbolTaskWithPlanFilter(tableName);
+    } else {
+      res = await this.prisma[tableName].findMany({
+        select: {
+          id: true,
+          symbol: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    }
     return res.map((obj) => {
       obj['tableName'] = tableName;
       return obj;
     });
   }
 
-  async updateLatestDate(
+  public async updateLatestDate(
     tableName: string,
     id: number,
     date: Date,
@@ -66,7 +112,7 @@ export class RmdbService {
       })
       .catch((d) => this.logger.error(d));
   }
-  async updateOldestDate(
+  public async updateOldestDate(
     tableName: string,
     id: number,
     date: Date,
@@ -83,7 +129,7 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  async updateIsHistoryDataFinished(
+  public async updateIsHistoryDataFinished(
     tableName: string,
     id: number,
     status: boolean,
@@ -100,7 +146,74 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  async bulkInsertStocks(inputs: rsp_stocks[] | object[]): Promise<any> {
+  public async bulkUpsertTable<T>(rsp_data: T[], tableName: string) {
+    switch (tableName) {
+      case 'stocks':
+        await this.bulkUpsertTableResponse<T>(
+          ['symbol', 'mic_code'],
+          tableName,
+          [
+            'symbol',
+            'name',
+            'currency',
+            'exchange',
+            'mic_code',
+            'country',
+            'type',
+            'global',
+            'plan',
+          ],
+          rsp_data,
+        );
+        break;
+      case 'forexpair':
+        await this.bulkUpsertTableResponse<T>(
+          ['symbol', 'currency_base'],
+          tableName,
+          ['symbol', 'currency_group', 'currency_base', 'currency_quote'],
+          rsp_data,
+        );
+        break;
+      case 'cryptocurrency':
+        await this.bulkUpsertTableResponse<T>(
+          ['symbol', 'currency_base'],
+          tableName,
+          ['symbol', 'available_exchange', 'currency_base', 'currency_quote'],
+          rsp_data,
+        );
+        break;
+      case 'etf':
+        await this.bulkUpsertTableResponse<T>(
+          ['symbol', 'mic_code'],
+          tableName,
+          [
+            'symbol',
+            'name',
+            'currency',
+            'exchange',
+            'mic_code',
+            'country',
+            'global',
+            'plan',
+          ],
+          rsp_data,
+        );
+        break;
+
+      case 'indices':
+        await this.bulkUpsertTableResponse<T>(
+          ['symbol', 'country'],
+          tableName,
+          ['symbol', 'name', 'country', 'currency', 'global', 'plan'],
+          rsp_data,
+        );
+        break;
+      default:
+        throw TypeError('tableName error');
+    }
+  }
+
+  public async bulkInsertStocks(inputs: rsp_stocks[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
       return {
@@ -115,6 +228,8 @@ export class RmdbService {
         oldest_date: currentTime,
         ishistorydatafinished: false,
         table_update_date: currentTime,
+        global: d.access.global,
+        plan: d.access.plan,
       };
     });
 
@@ -124,69 +239,8 @@ export class RmdbService {
       })
       .catch((d) => this.logger.error(d));
   }
-  // TODO: Convert all bulk Upsert functions to stratagy method
-  async bulkUpsertStocks(inputs: rsp_stocks[]): Promise<any> {
-    const currentTime = new Date();
-    const forexpairHashMap: Map<string, rsp_stocks> = new Map();
-    for (const obj of inputs) {
-      const unique: string = [obj.symbol, obj.mic_code].join(',');
-      forexpairHashMap.set(unique, obj);
-    }
 
-    const existsforexpair: rsp_stocks[] = [];
-    const nonexistsforexpair: rsp_stocks[] = [];
-    const db_resp = await this.prisma['stocks'].findMany({
-      select: {
-        symbol: true,
-        mic_code: true,
-      },
-    });
-
-    this.logger.log('database retrieve complete');
-    for (const obj of db_resp) {
-      const unique = [obj.symbol, obj.mic_code].join(',');
-      if (forexpairHashMap.has(unique)) {
-        existsforexpair.push(forexpairHashMap.get(unique));
-      } else {
-        nonexistsforexpair.push(forexpairHashMap.get(unique));
-      }
-    }
-
-    this.logger.log(`exists: ${existsforexpair.length}`);
-    this.logger.log(`nonexists: ${nonexistsforexpair.length}`);
-    this.logger.log('seperation complete');
-
-    if (nonexistsforexpair.length > 0) {
-      await this.bulkInsertStocks(nonexistsforexpair);
-      this.logger.log('bulk create complete');
-    } else {
-      this.logger.log('new stock empty');
-    }
-
-    for (const obj of existsforexpair) {
-      await this.prisma.stocks.update({
-        where: {
-          symbol_mic_code: {
-            symbol: obj.symbol,
-            mic_code: obj.mic_code,
-          },
-        },
-        data: {
-          symbol: obj.symbol,
-          name: obj.name,
-          currency: obj.currency,
-          exchange: obj.exchange,
-          mic_code: obj.mic_code,
-          country: obj.country,
-          type: obj.type,
-          table_update_date: currentTime,
-        },
-      });
-    }
-    this.logger.log('update many complete');
-  }
-
-  async bulkInsertForexPair(inputs: rsp_forexpair[] | object[]): Promise<any> {
+  public async bulkInsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
       return {
@@ -208,153 +262,8 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  private static createUnique(obj: object, properties: string[]): string {
-    const propList: string[] = [];
-    for (const prop of properties) {
-      propList.push(obj[prop]);
-    }
-    return propList.join('_');
-  }
-
-  async bulkUpsertTableResponse(
-    propertyList: string[],
-    tableName: string,
-    updateColumns: string[],
-    rspData: any,
-  ): Promise<void> {
-    const dbSet: Set<string> = new Set();
-
-    const select = {};
-    for (const prop of propertyList) {
-      select[prop] = true;
-    }
-
-    const db_resp = await this.prisma[tableName].findMany({
-      select: select,
-    });
-
-    for (const obj of db_resp) {
-      dbSet.add(RmdbService.createUnique(obj, propertyList));
-    }
-
-    const exists: object[] = [];
-    const nonexist: object[] = [];
-
-    for (const rsp of rspData) {
-      const unique: string = RmdbService.createUnique(rsp, propertyList);
-      if (dbSet.has(unique)) {
-        exists.push(rsp);
-      } else {
-        nonexist.push(rsp);
-      }
-    }
-
-    if (nonexist.length > 0) {
-      switch (tableName) {
-        case 'stocks':
-          await this.bulkInsertStocks(nonexist);
-          break;
-        case 'forexpair':
-          await this.bulkInsertForexPair(nonexist);
-          break;
-        case 'cryptocurrency':
-          await this.bulkInsertCryptoCurrency(nonexist);
-          break;
-        case 'etf':
-          await this.bulkInsertETF(nonexist);
-          break;
-        case 'indice':
-          await this.bulkInsertIndice(nonexist);
-      }
-    } else {
-      this.logger.log('no new objects to update');
-    }
-
-    const uniqueKeyName = propertyList.join('_');
-
-    for (const obj of exists) {
-      const uniqueWhere = {};
-      for (const prop of propertyList) {
-        uniqueWhere[prop] = obj[prop];
-      }
-
-      const where = {};
-      where[uniqueKeyName] = uniqueWhere;
-
-      const data = {};
-      for (const column of updateColumns) {
-        data[column] = obj[column];
-      }
-
-      await this.prisma[tableName].update({
-        where: where,
-        data: data,
-      });
-    }
-    this.logger.log('upsert completed');
-  }
-
-  // TODO: Convert all bulk Upsert functions to strategy method
-  async bulkUpsertForexPair(inputs: rsp_forexpair[]): Promise<any> {
-    const currentTime = new Date();
-    const forexpairHashMap: Map<string, rsp_forexpair> = new Map();
-    for (const obj of inputs) {
-      const unique: string = [obj.symbol, obj.currency_base].join(',');
-      forexpairHashMap.set(unique, obj);
-    }
-
-    const existsforexpair: rsp_forexpair[] = [];
-    const nonexistsforexpair: rsp_forexpair[] = [];
-    const db_resp = await this.prisma['forexpair'].findMany({
-      select: {
-        symbol: true,
-        currency_base: true,
-      },
-    });
-
-    this.logger.log('database retrieve complete');
-    for (const obj of db_resp) {
-      const unique = [obj.symbol, obj.currency_base].join(',');
-      if (forexpairHashMap.has(unique)) {
-        existsforexpair.push(forexpairHashMap.get(unique));
-      } else {
-        nonexistsforexpair.push(forexpairHashMap.get(unique));
-      }
-    }
-
-    this.logger.log(`exists: ${existsforexpair.length}`);
-    this.logger.log(`nonexists: ${nonexistsforexpair.length}`);
-    this.logger.log('seperation complete');
-
-    if (nonexistsforexpair.length > 0) {
-      await this.bulkInsertForexPair(nonexistsforexpair);
-      this.logger.log('bulk create complete');
-    } else {
-      this.logger.log('new stock empty');
-    }
-
-    for (const obj of existsforexpair) {
-      await this.prisma.forexpair.update({
-        where: {
-          symbol_currency_base: {
-            symbol: obj.symbol,
-            currency_base: obj.currency_base,
-          },
-        },
-        data: {
-          symbol: obj.symbol,
-          currency_group: obj.currency_group,
-          currency_base: obj.currency_base,
-          currency_quote: obj.currency_quote,
-          table_update_date: currentTime,
-        },
-      });
-    }
-    this.logger.log('update many complete');
-  }
-
-  async bulkInsertCryptoCurrency(
-    inputs: rsp_cryptocurrency[] | object[],
+  public async bulkInsertCryptoCurrency(
+    inputs: rsp_cryptocurrency[],
   ): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
@@ -377,40 +286,7 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  async bulkUpsertCryptoCurrency(inputs: rsp_cryptocurrency[]): Promise<any> {
-    const currentTime = new Date();
-    return await this.prisma.$transaction(
-      inputs.map((crypto) =>
-        this.prisma.cryptocurrency.upsert({
-          where: {
-            symbol_currency_base: {
-              symbol: crypto.symbol,
-              currency_base: crypto.currency_base,
-            },
-          },
-          update: {
-            symbol: crypto.symbol,
-            available_exchange: crypto.available_exchanges.toString(),
-            currency_base: crypto.currency_base,
-            currency_quote: crypto.currency_quote,
-            table_update_date: currentTime,
-          },
-          create: {
-            symbol: crypto.symbol,
-            available_exchange: crypto.available_exchanges.toString(),
-            currency_base: crypto.currency_base,
-            currency_quote: crypto.currency_quote,
-            latest_date: currentTime,
-            oldest_date: currentTime,
-            ishistorydatafinished: false,
-            table_update_date: currentTime,
-          },
-        }),
-      ),
-    );
-  }
-
-  async bulkInsertETF(inputs: rsp_etf[] | object[]): Promise<any> {
+  public async bulkInsertETF(inputs: rsp_etf[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
       return {
@@ -424,6 +300,8 @@ export class RmdbService {
         oldest_date: currentTime,
         ishistorydatafinished: false,
         table_update_date: currentTime,
+        global: d.access.global,
+        plan: d.access.plan,
       };
     });
 
@@ -434,44 +312,7 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  async bulkUpsertETF(inputs: rsp_etf[]): Promise<any> {
-    const currentTime = new Date();
-    return await this.prisma.$transaction(
-      inputs.map((etf) =>
-        this.prisma.etf.upsert({
-          where: {
-            symbol_mic_code: {
-              symbol: etf.symbol,
-              mic_code: etf.mic_code,
-            },
-          },
-          update: {
-            symbol: etf.symbol,
-            name: etf.name,
-            currency: etf.currency,
-            exchange: etf.exchange,
-            mic_code: etf.mic_code,
-            country: etf.country,
-            table_update_date: currentTime,
-          },
-          create: {
-            symbol: etf.symbol,
-            name: etf.name,
-            currency: etf.currency,
-            exchange: etf.exchange,
-            mic_code: etf.mic_code,
-            country: etf.country,
-            latest_date: currentTime,
-            oldest_date: currentTime,
-            ishistorydatafinished: false,
-            table_update_date: currentTime,
-          },
-        }),
-      ),
-    );
-  }
-
-  async bulkInsertIndice(inputs: rsp_indices[] | object[]): Promise<any> {
+  public async bulkInsertIndice(inputs: rsp_indices[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
       return {
@@ -483,6 +324,8 @@ export class RmdbService {
         oldest_date: currentTime,
         ishistorydatafinished: false,
         table_update_date: currentTime,
+        global: d.access.global,
+        plan: d.access.plan,
       };
     });
 
@@ -491,39 +334,6 @@ export class RmdbService {
         data: data,
       })
       .catch((d) => this.logger.error(d));
-  }
-
-  async bulkUpsertIndice(inputs: rsp_indices[] | object[]): Promise<any> {
-    const currentTime = new Date();
-    return await this.prisma.$transaction(
-      inputs.map((indice) =>
-        this.prisma.indices.upsert({
-          where: {
-            symbol_country: {
-              symbol: indice.symbol,
-              country: indice.country,
-            },
-          },
-          update: {
-            symbol: indice.symbol,
-            name: indice.name,
-            country: indice.country,
-            currency: indice.currency,
-            table_update_date: currentTime,
-          },
-          create: {
-            symbol: indice.symbol,
-            name: indice.name,
-            country: indice.country,
-            currency: indice.currency,
-            latest_date: currentTime,
-            oldest_date: currentTime,
-            ishistorydatafinished: false,
-            table_update_date: currentTime,
-          },
-        }),
-      ),
-    );
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
@@ -536,7 +346,7 @@ export class RmdbService {
       `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
       data,
     );
-    this.client.query(query, (err, res) => {
+    this.client.query(query, (err, _) => {
       if (err) {
         this.logger.log(err);
       }
@@ -544,17 +354,122 @@ export class RmdbService {
   }
 
   // input data format : symbol, datetime, open, high, low, close, volume
-  async insertTableData(tableName: string, data: string[]): Promise<void> {
+  public async insertTableData(
+    tableName: string,
+    data: string[],
+  ): Promise<void> {
     const dataTableName = tableName + 'data';
     const d = [data];
     const query = format(
       `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
       d,
     );
-    this.client.query(query, (err, res) => {
+    this.client.query(query, (err, _) => {
       if (err) {
         this.logger.log(err);
       }
     });
+  }
+
+  private static createUnique<T>(obj: T, properties: string[]): string {
+    const propList: string[] = [];
+    for (const prop of properties) {
+      propList.push(obj[prop]);
+    }
+    return propList.join('_');
+  }
+
+  private async bulkUpsertTableResponse<T>(
+    propertyList: string[],
+    tableName: string,
+    updateColumns: string[],
+    rspData: T[],
+  ): Promise<void> {
+    const dbSet: Set<string> = new Set();
+
+    const select = {};
+    for (const prop of propertyList) {
+      select[prop] = true;
+    }
+
+    const db_resp = await this.prisma[tableName].findMany({
+      select: select,
+    });
+
+    for (const obj of db_resp) {
+      dbSet.add(RmdbService.createUnique(obj, propertyList));
+    }
+
+    const exists: T[] = [];
+    const nonexist: T[] = [];
+
+    for (const rsp of rspData) {
+      const unique: string = RmdbService.createUnique(rsp, propertyList);
+      if (dbSet.has(unique)) {
+        exists.push(rsp);
+      } else {
+        nonexist.push(rsp);
+      }
+    }
+
+    if (nonexist.length > 0) {
+      switch (tableName) {
+        case 'stocks':
+          // @ts-ignore
+          await this.bulkInsertStocks(nonexist);
+          break;
+        case 'forexpair':
+          // @ts-ignore
+          await this.bulkInsertForexPair(nonexist);
+          break;
+        case 'cryptocurrency':
+          // @ts-ignore
+          await this.bulkInsertCryptoCurrency(nonexist);
+          break;
+        case 'etf':
+          // @ts-ignore
+          await this.bulkInsertETF(nonexist);
+          break;
+        case 'indices':
+          // @ts-ignore
+          await this.bulkInsertIndice(nonexist);
+          break;
+        default:
+          throw TypeError('tableName error');
+      }
+    } else {
+      this.logger.log('no new objects to update');
+    }
+
+    const uniqueKeyName = propertyList.join('_');
+    const currentTime = new Date();
+    for (const obj of exists) {
+      const uniqueWhere = {};
+      for (const prop of propertyList) {
+        uniqueWhere[prop] = obj[prop];
+      }
+
+      const where = {};
+      where[uniqueKeyName] = uniqueWhere;
+
+      const data = {};
+      for (const column of updateColumns) {
+        // find a better place to convert data
+        if (column == 'plan' || column == 'global') {
+          if (obj['access'] != undefined) {
+            data[column] = obj['access'][column];
+          }
+        } else {
+          data[column] = obj[column];
+        }
+      }
+      data['table_update_date'] = currentTime;
+
+      await this.prisma[tableName].update({
+        where: where,
+        data: data,
+      });
+    }
+    this.logger.log('upsert completed');
   }
 }

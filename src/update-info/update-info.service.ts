@@ -10,7 +10,7 @@ import {
   rsp_cryptocurrency,
   rsp_etf,
   rsp_indices,
-} from 'src/dto/third_party/twelve_data/stocks';
+} from 'src/dto/third_party/twelve_data/data';
 
 enum TaskType {
   daily,
@@ -64,27 +64,43 @@ export class UpdateInfoService {
   }
 
   public async updateSymbolTables(): Promise<void> {
-    const stock: rsp_stocks[] = await this.twelveDataService.allStocks();
-    await this.rmdbService.bulkUpsertStocks(stock);
-    await util.sleep(this.waitTime);
+    const tableUpdateArr = [
+      [
+        'stocks',
+        rsp_stocks,
+        this.twelveDataService.allStocks.bind(this.twelveDataService),
+      ],
+      [
+        'forexpair',
+        rsp_forexpair,
+        this.twelveDataService.allForexPair.bind(this.twelveDataService),
+      ],
+      [
+        'cryptocurrency',
+        rsp_cryptocurrency,
+        this.twelveDataService.allCryptoCurrency.bind(this.twelveDataService),
+      ],
+      [
+        'etf',
+        rsp_etf,
+        this.twelveDataService.allETF.bind(this.twelveDataService),
+      ],
+      [
+        'indices',
+        rsp_indices,
+        this.twelveDataService.allIndices.bind(this.twelveDataService),
+      ],
+    ];
 
-    const forexpair: rsp_forexpair[] =
-      await this.twelveDataService.allForexPair();
-    await this.rmdbService.bulkUpsertForexPair(forexpair);
-    await util.sleep(this.waitTime);
-
-    const cryptocurrency: rsp_cryptocurrency[] =
-      await this.twelveDataService.allCryptoCurrency();
-    await this.rmdbService.bulkUpsertCryptoCurrency(cryptocurrency);
-    await util.sleep(this.waitTime);
-
-    const etf: rsp_etf[] = await this.twelveDataService.allETF();
-    await this.rmdbService.bulkUpsertETF(etf);
-    await util.sleep(this.waitTime);
-
-    const indices: rsp_indices[] = await this.twelveDataService.allIndices();
-    await this.rmdbService.bulkUpsertIndice(indices);
-    await util.sleep(this.waitTime);
+    for (const [tableName, templateType, func] of tableUpdateArr) {
+      const rsp: typeof templateType[] = await func();
+      this.logger.log(tableName);
+      await this.rmdbService.bulkUpsertTable<typeof templateType>(
+        rsp,
+        tableName,
+      );
+      await util.sleep(this.waitTime);
+    }
   }
 
   public async runSymbolTasks(): Promise<void> {

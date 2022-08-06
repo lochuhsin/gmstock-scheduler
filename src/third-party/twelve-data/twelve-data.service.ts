@@ -9,7 +9,7 @@ import {
   rsp_cryptocurrency,
   rsp_etf,
   rsp_indices,
-} from 'src/dto/third_party/twelve_data/stocks';
+} from 'src/dto/third_party/twelve_data/data';
 
 @Injectable()
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -20,6 +20,7 @@ export class TwelveDataService {
     return await this.httpService.axiosRef.get(url, {
       params: {
         apikey: settings.token['twelveData'],
+        show_plan: true,
       },
     });
   }
@@ -28,6 +29,11 @@ export class TwelveDataService {
     const url = 'https://api.twelvedata.com/stocks';
     const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_stocks[]>>(
       url,
+      {
+        params: {
+          show_plan: true,
+        },
+      },
     );
     return rsp.data.data;
   }
@@ -52,6 +58,11 @@ export class TwelveDataService {
     const url = 'https://api.twelvedata.com/etf';
     const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_etf[]>>(
       url,
+      {
+        params: {
+          show_plan: true,
+        },
+      },
     );
     return rsp.data.data;
   }
@@ -60,6 +71,11 @@ export class TwelveDataService {
     const url = 'https://api.twelvedata.com/indices';
     const rsp = await this.httpService.axiosRef.get<twelve_base<rsp_indices[]>>(
       url,
+      {
+        params: {
+          show_plan: true,
+        },
+      },
     );
     return rsp.data.data;
   }
