@@ -47,20 +47,37 @@ export class UpdateInfoService {
     this.updateTaskQue = new util.queue<db_rsp_symboltask>();
   }
 
-  testFunc(): void {
-    console.log('Hello world');
+  public getSymbolTaskCount() {
+    return {
+      history: this.historyTaskQue.getSize(),
+      daily: this.dailyTaskQue.getSize(),
+      update: this.updateTaskQue.getSize(),
+    };
   }
-  public async initApiCount(): Promise<void> {
+
+  public initApiCount(): void {
     this.leftAPICount = settings.api['apicount'];
   }
 
   public async initSymbolTasks(): Promise<void> {
     await this.fillSymbolTasks();
-    this.logger.log(`Init Symbol Tasks at ${util.getCurrentDateTime()}`);
+    this.logger.log(`Init Symbol Tasks at ${new Date()}`);
   }
 
   public getCurrentAPICount(): number {
     return this.leftAPICount;
+  }
+
+  public clearTaskQueue(): object {
+    this.historyTaskQue.clear();
+    this.dailyTaskQue.clear();
+    this.updateTaskQue.clear();
+    this.logger.log(`Remove Symbol Tasks at ${new Date()}`);
+    return {
+      history: this.historyTaskQue.getSize(),
+      daily: this.dailyTaskQue.getSize(),
+      update: this.updateTaskQue.getSize(),
+    };
   }
 
   public async updateSymbolTables(): Promise<void> {

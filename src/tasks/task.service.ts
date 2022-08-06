@@ -13,14 +13,14 @@ export class TasksService {
       `left api count: ${this.updateService.getCurrentAPICount()}`,
     );
 
-    await this.updateService.initApiCount();
+    this.updateService.initApiCount();
     this.logger.log('ApiCount initialized');
 
     await this.updateService.initSymbolTasks();
     this.logger.log('Symbol tasks initialized');
   }
 
-  @Cron('*/20 * * * * *')
+  @Cron('*/2 * * * * *')
   async runTasks(): Promise<void> {
     await this.updateService.runSymbolTasks();
   }
@@ -34,8 +34,8 @@ export class TasksService {
     this.logger.log(`Update finished at: ${new Date()}`);
   }
 
-  @Cron('0 */5 * * * *')
+  @Cron('0 */30 * * * *')
   async systemHealthCheck(): Promise<void> {
-    this.logger.log(`[Heart Beat per 5 min] system still alive`);
+    this.logger.log(`[Heart Beat per 30 min] system still alive`);
   }
 }

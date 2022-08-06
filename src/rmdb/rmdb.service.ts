@@ -90,7 +90,7 @@ export class RmdbService {
       });
     }
     return res.map((obj) => {
-      obj['tableName'] = tableName;
+      obj['table_name'] = tableName;
       return obj;
     });
   }

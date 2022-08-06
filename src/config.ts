@@ -4,9 +4,9 @@ interface config {
 
 const settings: config = {};
 
-settings.twelveData = { plan: 'Basic', global: ['Level A'] };
+settings.twelveData = { plan: 'Grow', global: ['Level A'] };
 
-settings.api = { apicount: 44 * 60 * 24, historyinterval: 4500 };
+settings.api = { apicount: 44 * 60 * 24, historyInterval: 4500 };
 
 settings.token = {
   finMind:
