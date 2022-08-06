@@ -35,14 +35,13 @@ export class RmdbService {
   private async getSymbolTaskWithPlanFilter(
     tableName: string,
   ): Promise<db_rsp_symboltask[]> {
-    const twelveDataConfig = settings.twelveDataConfig;
-    const currentPlan = twelveDataConfig.plan;
+    const plan = settings.twelveData.plan;
 
     let res: any;
-    if (currentPlan == 'Basic') {
+    if (plan == 'Basic') {
       res = await this.prisma[tableName].findMany({
         where: {
-          plan: 'Basic',
+          plan: plan,
         },
         select: {
           id: true,
@@ -54,7 +53,7 @@ export class RmdbService {
       });
     } else {
       const globalFilterObj: object[] = [];
-      for (const global of twelveDataConfig.global) {
+      for (const global of settings.twelveData.global) {
         globalFilterObj.push({
           global: global,
         });

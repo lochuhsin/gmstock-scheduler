@@ -8,8 +8,6 @@ settings.twelveData = { plan: 'Basic', global: ['Level A'] };
 
 settings.api = { apicount: 44 * 60 * 24, historyinterval: 4500 };
 
-settings.startScript = { path: './startScript.sh' };
-
 settings.token = {
   finMind:
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyMi0wNi0yMyAyMDoxNzowMyIsInVzZXJfaWQiOiJsb2NodWhzaW4iLCJpcCI6IjExNC4xMzYuNTguMTE1In0.tWMyITWi1PXdSGZGFuE_RcrUKtLYcsrP3DHgnlhZ6oc',
