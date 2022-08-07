@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
 
-  db:
+  postgres:
     image: postgres
     restart: always
     environment:
@@ -17,7 +17,8 @@ services:
     restart: always
     build: .
     depends_on:
-      - db
+      - postgres
+      - mongo
     ports:
       - "3000:3000"
     networks:
@@ -25,6 +26,30 @@ services:
     volumes:
       - .:/usr/src/app
 
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: TimeSeries
+    ports:
+      - "27017:27017"
+    networks:
+      - grandma-scheduler
+
+  mongo-express:
+    image: mongo-express:0.54.0
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_MONGODB_URL: mongodb://root:root@mongo:27017/
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+    networks:
+      - grandma-scheduler
 
 
 networks:

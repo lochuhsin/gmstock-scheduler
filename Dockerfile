@@ -10,7 +10,7 @@ COPY . .
 
 RUN yarn build
 
-ENV DATABASE_URL="postgres://root:root@db:5432/postgres"
+ENV DATABASE_URL="postgres://root:root@postgres:5432/postgres"
 
 RUN yarn prisma generate
 
