@@ -22,8 +22,12 @@ settings.postgres = {
   user: 'root',
   password: 'root',
   database: 'postgres',
-  host: 'db',
+  host: 'postgres',
   port: 5432,
+};
+
+settings.mongodb = {
+  mongoConn: 'mongodb://root:root@mongo:27017/TimeSeries?authSource=admin',
 };
 
 export default settings;

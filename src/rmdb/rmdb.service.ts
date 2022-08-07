@@ -215,6 +215,14 @@ export class RmdbService {
   public async bulkInsertStocks(inputs: rsp_stocks[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
+
+      let global = 'Basic';
+      let plan = 'Basic';
+      if (d.access != undefined) {
+        global = d.access.global;
+        plan = d.access.plan;
+      }
+
       return {
         symbol: d.symbol,
         name: d.name,
@@ -227,8 +235,8 @@ export class RmdbService {
         oldest_date: currentTime,
         ishistorydatafinished: false,
         table_update_date: currentTime,
-        global: d.access.global,
-        plan: d.access.plan,
+        global: global,
+        plan: plan,
       };
     });
 
@@ -288,6 +296,12 @@ export class RmdbService {
   public async bulkInsertETF(inputs: rsp_etf[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
+      let global = 'Basic';
+      let plan = 'Basic';
+      if (d.access != undefined) {
+        global = d.access.global;
+        plan = d.access.plan;
+      }
       return {
         symbol: d.symbol,
         name: d.name,
@@ -299,8 +313,8 @@ export class RmdbService {
         oldest_date: currentTime,
         ishistorydatafinished: false,
         table_update_date: currentTime,
-        global: d.access.global,
-        plan: d.access.plan,
+        global: global,
+        plan: plan,
       };
     });
 
@@ -314,6 +328,12 @@ export class RmdbService {
   public async bulkInsertIndice(inputs: rsp_indices[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
+      let global = 'Basic';
+      let plan = 'Basic';
+      if (d.access != undefined) {
+        global = d.access.global;
+        plan = d.access.plan;
+      }
       return {
         symbol: d.symbol,
         name: d.name,
@@ -323,8 +343,8 @@ export class RmdbService {
         oldest_date: currentTime,
         ishistorydatafinished: false,
         table_update_date: currentTime,
-        global: d.access.global,
-        plan: d.access.plan,
+        global: global,
+        plan: plan,
       };
     });
 

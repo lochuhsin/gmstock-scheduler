@@ -9,8 +9,14 @@ import { RmdbModule } from './rmdb/rmdb.module';
 import { InitDataModule } from './init-data/init-data.module';
 import { ThirdPartyModule } from './third-party/third-party.module';
 import { UpdateInfoModule } from './update-info/update-info.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import settings from './config';
+
 @Module({
   imports: [
+    MongooseModule.forRoot(
+      settings.mongodb.mongoConn,
+    ),
     ScheduleModule.forRoot(),
     TasksModule,
     InitDataModule,
