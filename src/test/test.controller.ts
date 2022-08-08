@@ -1,15 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
 import * as mongoose from 'mongoose';
-import { RmdbService } from 'src/rmdb/rmdb.service';
 import { util } from '../util/util';
+import { InjectConnection } from '@nestjs/mongoose';
 
 @Controller('test')
 export class TestController {
   constructor(
     private readonly twelveDataService: TwelveDataService,
-    private readonly rmdbService: RmdbService,
+    @InjectConnection() private readonly connection: mongoose.Connection,
   ) {}
+  logger = new Logger(TestController.name);
 
   @Get('test1')
   async test1() {
@@ -31,10 +32,6 @@ export class TestController {
 
   @Get('dbtest')
   test() {
-    mongoose.connection.on('open', function (ref) {
-      mongoose.connection.db.listCollections().toArray(function (err, names) {
-        console.log(names);
-      });
-    });
+    this.connection.useDb('test').collection('test').insertOne({ abc: 123 });
   }
 }
