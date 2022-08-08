@@ -37,6 +37,8 @@ services:
       - "27017:27017"
     networks:
       - grandma-scheduler
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
 
 networks:
   grandma-scheduler:
