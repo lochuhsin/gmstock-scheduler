@@ -361,9 +361,21 @@ export class RmdbService {
     data: string[][],
   ): Promise<void> {
     const dataTableName = tableName + 'data';
+    const dataUniqueSet: Set<string> = new Set();
+    const cleanData: string[][] = [];
+
+    for (const d of data) {
+      const unique = [d[0], d[1]].join('_');
+
+      if (!dataUniqueSet.has(unique)) {
+        dataUniqueSet.add(unique);
+        cleanData.push(d);
+      }
+    }
+
     const query = format(
       `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
-      data,
+      cleanData,
     );
     this.client.query(query, (err, _) => {
       if (err) {

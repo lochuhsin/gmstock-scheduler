@@ -7,4 +7,4 @@ import { RmdbService } from './rmdb.service';
   exports: [RmdbService],
   providers: [RmdbService],
 })
-export class RmdbModule { }
+export class RmdbModule {}

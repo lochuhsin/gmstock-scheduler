@@ -1,7 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
-import { rsp_stocks } from '../dto/third_party/twelve_data/stocks';
+import * as mongoose from 'mongoose';
 import { RmdbService } from 'src/rmdb/rmdb.service';
+import { util } from '../util/util';
 
 @Controller('test')
 export class TestController {
@@ -10,31 +11,30 @@ export class TestController {
     private readonly rmdbService: RmdbService,
   ) {}
 
-  @Get('origin')
-  async origin() {
-    const stock: rsp_stocks[] = await this.twelveDataService.allStocks();
-    await this.rmdbService.bulkUpsertStocks(stock);
-    return 'ok';
+  @Get('test1')
+  async test1() {
+    const endDate = new Date();
+    const copyDate = new Date(endDate.valueOf());
+    copyDate.setDate(copyDate.getDate() - 7000);
+    console.log(copyDate);
+
+    const end = util.convertDateToDateString(endDate);
+    const start = util.convertDateToDateString(copyDate);
+
+    const result: string[][] = await this.twelveDataService.testFunc(
+      'AAPL',
+      start,
+      end,
+    );
+    return result.length;
   }
 
-  @Get('test')
-  async test() {
-    const update: string[] = [
-      'symbol',
-      'name',
-      'currency',
-      'exchange',
-      'mic_code',
-      'country',
-      'type',
-    ];
-    const stock: rsp_stocks[] = await this.twelveDataService.allStocks();
-    await this.rmdbService.bulkUpsertTableResponse(
-      ['symbol', 'mic_code'],
-      'stocks',
-      update,
-      stock,
-    );
-    return 'ok';
+  @Get('dbtest')
+  test() {
+    mongoose.connection.on('open', function (ref) {
+      mongoose.connection.db.listCollections().toArray(function (err, names) {
+        console.log(names);
+      });
+    });
   }
 }

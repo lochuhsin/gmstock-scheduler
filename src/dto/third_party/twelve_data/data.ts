@@ -3,6 +3,16 @@ export class plan_base {
   plan: string;
 }
 
+export class trade_detail_base {
+  symbol: string;
+  interval: string;
+  currency: string;
+  exchange_timezone: string;
+  exchange: string;
+  mic_code: string;
+  type: string;
+}
+
 export class rsp_stocks {
   symbol: string;
   name: string;

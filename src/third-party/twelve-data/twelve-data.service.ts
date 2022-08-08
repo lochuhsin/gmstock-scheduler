@@ -15,15 +15,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export class TwelveDataService {
   constructor(private readonly httpService: HttpService) {}
-  async testFunc() {
-    const url = 'https://api.twelvedata.com/market_state';
-    return await this.httpService.axiosRef.get(url, {
-      params: {
-        apikey: settings.token['twelveData'],
-        show_plan: true,
-      },
-    });
-  }
 
   async allStocks(): Promise<rsp_stocks[]> {
     const url = 'https://api.twelvedata.com/stocks';
@@ -78,6 +69,42 @@ export class TwelveDataService {
       },
     );
     return rsp.data.data;
+  }
+
+  async testFunc(
+    symbol: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<string[][]> {
+    const url = 'https://api.twelvedata.com/time_series';
+    const params = {
+      apikey: settings.token['twelveData'],
+      symbol: symbol,
+      interval: '1day',
+      start_date: startDate,
+      end_date: endDate,
+      timezone: 'utc',
+      format: 'csv',
+    };
+
+    const rsp = await this.httpService.axiosRef.get(url, {
+      params: params,
+    });
+    const data = rsp.data;
+    if (typeof data === 'object') {
+      const err_data: twelve_base<failed_obj> = data;
+      console.log(data);
+      if (err_data.code == 400) {
+        return null;
+      } else {
+        throw new Error(data.message);
+      }
+    }
+
+    return parse(data, {
+      delimiter: ';',
+      skip_empty_lines: true,
+    });
   }
 
   // https://twelvedata.com/docs#time-series
