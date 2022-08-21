@@ -13,6 +13,12 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  @Get('triggerDailySymbolTaskInit')
+  async triggerDailySymbolTaskInit() {
+    await this.updateService.initDailySymbolTasks();
+    return 'ok';
+  }
+
   @Get('triggerSymbolTableUpdate')
   async triggerSymbolTableUpdate(): Promise<string> {
     await this.updateService.updateSymbolTables();

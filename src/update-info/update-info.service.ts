@@ -73,6 +73,15 @@ export class UpdateInfoService {
     this.logger.log(`Init Symbol Tasks at ${new Date()}`);
   }
 
+  public async initDailySymbolTasks(): Promise<void> {
+    const tableTasks: any[] = await this.getAllTasks();
+    for (const tasks of tableTasks) {
+      for (const obj of tasks) {
+        this.dailyTaskQue.push(obj);
+      }
+    }
+  }
+
   public getCurrentAPICount(): number {
     return this.leftAPICount;
   }
@@ -130,30 +139,36 @@ export class UpdateInfoService {
   }
 
   public async runSymbolTasks(): Promise<void> {
-    if (this.leftAPICount > 0) {
-      if (this.historyTaskQue.getSize() > 0) {
-        await this.runHistory();
-        this.leftAPICount--;
-      } else {
-        this.logger.log('history task queue is empty');
-      }
-      this.logger.log(`API count left ${this.leftAPICount}`);
+    if (this.leftAPICount <= 0) {
+      this.logger.log('No api left');
+      return null;
+    }
 
-      if (this.updateTaskQue.getSize() > 0) {
-        await this.runUpdate();
-        this.leftAPICount--;
-      } else {
-        this.logger.log('update task queue is empty');
-      }
+    if (this.historyTaskQue.getSize() > 0) {
+      await this.runHistory();
+      this.leftAPICount--;
       this.logger.log(`API count left ${this.leftAPICount}`);
+      return null; //return after finished a task
+    } else {
+      this.logger.log('history task queue is empty');
+    }
 
-      if (this.dailyTaskQue.getSize() > 0) {
-        await this.runDaily();
-        this.leftAPICount--;
-      } else {
-        this.logger.log('daily task queue is empty');
-      }
+    if (this.updateTaskQue.getSize() > 0) {
+      await this.runUpdate();
+      this.leftAPICount--;
       this.logger.log(`API count left ${this.leftAPICount}`);
+      return null; //return after finished a task
+    } else {
+      this.logger.log('update task queue is empty');
+    }
+
+    if (this.dailyTaskQue.getSize() > 0) {
+      await this.runDaily();
+      this.leftAPICount--;
+      this.logger.log(`API count left ${this.leftAPICount}`);
+      return null; //return after finished a task
+    } else {
+      this.logger.log('daily task queue is empty');
     }
   }
 
@@ -312,7 +327,7 @@ export class UpdateInfoService {
     this.logger.log(`Daily data update at ${new Date()}`);
   }
 
-  private async fillSymbolTasks() {
+  private async getAllTasks(): Promise<any[]> {
     const stocksTasks: db_rsp_stocktask[] =
       await this.rmdbService.getStockSymbolTasks();
     const forexpairTasks: db_rsp_forexpairtask[] =
@@ -323,14 +338,13 @@ export class UpdateInfoService {
       await this.rmdbService.getETFSymbolTasks();
     const indicesTasks: db_rsp_indicetask[] =
       await this.rmdbService.getIndiceSymbolTasks();
+    return [stocksTasks, forexpairTasks, cryptoTasks, etfTasks, indicesTasks];
+  }
 
-    for (const tasks of [
-      stocksTasks,
-      forexpairTasks,
-      cryptoTasks,
-      etfTasks,
-      indicesTasks,
-    ]) {
+  private async fillSymbolTasks() {
+    const tableTasks: any[] = await this.getAllTasks();
+
+    for (const tasks of tableTasks) {
       for (const obj of tasks) {
         if (!obj.ishistorydatafinished) {
           this.historyTaskQue.push(obj);
