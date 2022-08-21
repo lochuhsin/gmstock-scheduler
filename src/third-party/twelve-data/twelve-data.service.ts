@@ -1,14 +1,15 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { parse } from 'csv-parse/sync';
 import settings from 'src/config';
-import { failed_obj, twelve_base } from 'src/dto/third_party/twelve_data/base';
+import { twelve_base } from 'src/dto/third_party/twelve_data/base';
 import {
   rsp_stocks,
   rsp_forexpair,
   rsp_cryptocurrency,
   rsp_etf,
   rsp_indices,
+  rsp_timeseries,
+  timeseries,
 } from 'src/dto/third_party/twelve_data/data';
 
 @Injectable()
@@ -75,7 +76,7 @@ export class TwelveDataService {
     symbol: string,
     startDate: string,
     endDate: string,
-  ): Promise<string[][]> {
+  ): Promise<any> {
     const url = 'https://api.twelvedata.com/time_series';
     const params = {
       apikey: settings.token['twelveData'],
@@ -84,27 +85,14 @@ export class TwelveDataService {
       start_date: startDate,
       end_date: endDate,
       timezone: 'utc',
-      format: 'csv',
+      format: 'json',
     };
 
     const rsp = await this.httpService.axiosRef.get(url, {
       params: params,
     });
-    const data = rsp.data;
-    if (typeof data === 'object') {
-      const err_data: twelve_base<failed_obj> = data;
-      console.log(data);
-      if (err_data.code == 400) {
-        return null;
-      } else {
-        throw new Error(data.message);
-      }
-    }
 
-    return parse(data, {
-      delimiter: ';',
-      skip_empty_lines: true,
-    });
+    return rsp.data;
   }
 
   // https://twelvedata.com/docs#time-series
@@ -114,7 +102,7 @@ export class TwelveDataService {
     symbol: string,
     startDate: string,
     endDate: string,
-  ): Promise<string[][]> {
+  ): Promise<timeseries[] | string> {
     const url = 'https://api.twelvedata.com/time_series';
     const params = {
       apikey: settings.token['twelveData'],
@@ -123,32 +111,21 @@ export class TwelveDataService {
       start_date: startDate,
       end_date: endDate,
       timezone: 'utc',
-      format: 'csv',
+      format: 'json',
     };
-
     const rsp = await this.httpService.axiosRef.get(url, {
       params: params,
     });
-    const data = rsp.data;
-    console.log(typeof data);
-    if (typeof data === 'object') {
-      const err_data: twelve_base<failed_obj> = data;
-      if (err_data.code == 400) {
-        return null;
-      } else {
-        throw new Error(data.message);
-      }
+    const data: rsp_timeseries = rsp.data;
+    if (data.status != 'ok') {
+      return data.message;
     }
-
-    return parse(data, {
-      delimiter: ';',
-      skip_empty_lines: true,
-    });
+    return data.values;
   }
 
   // only return specific columns, there are more data originally
   // https://twelvedata.com/docs#quote
-  async latest(symbol: string) {
+  async latest(symbol: string): Promise<timeseries> {
     const url = 'https://api.twelvedata.com/quote';
     const params = {
       apikey: settings.token['twelveData'],
@@ -168,13 +145,13 @@ export class TwelveDataService {
       }
     }
 
-    return [
-      text.datetime,
-      text.open,
-      text.high,
-      text.low,
-      text.close,
-      text.volume,
-    ];
+    return {
+      datetime: text.datetime,
+      open: text.open,
+      high: text.high,
+      low: text.low,
+      close: text.close,
+      volume: text.volume,
+    };
   }
 }

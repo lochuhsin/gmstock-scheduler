@@ -9,7 +9,13 @@ import {
 } from 'src/dto/third_party/twelve_data/data';
 const format = require('pg-format');
 import settings from '../config';
-import { db_rsp_symboltask } from '../dto/database/dbresponse';
+import {
+  db_rsp_cryptocurrencytask,
+  db_rsp_etftask,
+  db_rsp_forexpairtask,
+  db_rsp_indicetask,
+  db_rsp_stocktask,
+} from '../dto/database/dbresponse';
 import { Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -32,12 +38,10 @@ export class RmdbService {
     return await this.prisma[tableName].count();
   }
 
-  private async getSymbolTaskWithPlanFilter(
-    tableName: string,
-  ): Promise<db_rsp_symboltask[]> {
+  public async getStockSymbolTasks(): Promise<db_rsp_stocktask[]> {
     const plan = settings.twelveData.plan;
-
-    let res: any;
+    const tableName = 'stocks';
+    let res;
     if (plan == 'Basic') {
       res = await this.prisma[tableName].findMany({
         where: {
@@ -46,6 +50,7 @@ export class RmdbService {
         select: {
           id: true,
           symbol: true,
+          mic_code: true,
           latest_date: true,
           oldest_date: true,
           ishistorydatafinished: true,
@@ -65,24 +70,7 @@ export class RmdbService {
         select: {
           id: true,
           symbol: true,
-          latest_date: true,
-          oldest_date: true,
-          ishistorydatafinished: true,
-        },
-      });
-    }
-    return res;
-  }
-
-  public async getSymbolTask(tableName: string): Promise<db_rsp_symboltask[]> {
-    let res: any;
-    if (tableName == 'stocks' || tableName == 'etf' || tableName == 'indices') {
-      res = await this.getSymbolTaskWithPlanFilter(tableName);
-    } else {
-      res = await this.prisma[tableName].findMany({
-        select: {
-          id: true,
-          symbol: true,
+          mic_code: true,
           latest_date: true,
           oldest_date: true,
           ishistorydatafinished: true,
@@ -90,7 +78,141 @@ export class RmdbService {
       });
     }
     return res.map((obj) => {
-      obj['table_name'] = tableName;
+      obj.table_name = tableName;
+      obj.unique = tableName + '_' + obj.symbol + '_' + obj.mic_code;
+      return obj;
+    });
+  }
+
+  public async getETFSymbolTasks(): Promise<db_rsp_etftask[]> {
+    const plan = settings.twelveData.plan;
+    const tableName = 'etf';
+    let res;
+    if (plan == 'Basic') {
+      res = await this.prisma[tableName].findMany({
+        where: {
+          plan: plan,
+        },
+        select: {
+          id: true,
+          symbol: true,
+          mic_code: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    } else {
+      const globalFilterObj: object[] = [];
+      for (const global of settings.twelveData.global) {
+        globalFilterObj.push({
+          global: global,
+        });
+      }
+      res = await this.prisma[tableName].findMany({
+        where: {
+          OR: globalFilterObj,
+        },
+        select: {
+          id: true,
+          symbol: true,
+          mic_code: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    }
+    return res.map((obj) => {
+      obj.table_name = tableName;
+      obj.unique = tableName + '_' + obj.symbol + '_' + obj.mic_code;
+      return obj;
+    });
+  }
+
+  public async getIndiceSymbolTasks(): Promise<db_rsp_indicetask[]> {
+    const plan = settings.twelveData.plan;
+    const tableName = 'indices';
+    let res;
+    if (plan == 'Basic') {
+      res = await this.prisma[tableName].findMany({
+        where: {
+          plan: plan,
+        },
+        select: {
+          id: true,
+          symbol: true,
+          country: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    } else {
+      const globalFilterObj: object[] = [];
+      for (const global of settings.twelveData.global) {
+        globalFilterObj.push({
+          global: global,
+        });
+      }
+      res = await this.prisma[tableName].findMany({
+        where: {
+          OR: globalFilterObj,
+        },
+        select: {
+          id: true,
+          symbol: true,
+          country: true,
+          latest_date: true,
+          oldest_date: true,
+          ishistorydatafinished: true,
+        },
+      });
+    }
+    return res.map((obj) => {
+      obj.table_name = tableName;
+      obj.unique = tableName + '_' + obj.symbol + '_' + obj.country;
+      return obj;
+    });
+  }
+
+  public async getForexPairSymbolTasks(): Promise<db_rsp_forexpairtask[]> {
+    const tableName = 'forexpair';
+    const res: any = await this.prisma[tableName].findMany({
+      select: {
+        id: true,
+        symbol: true,
+        currency_base: true,
+        latest_date: true,
+        oldest_date: true,
+        ishistorydatafinished: true,
+      },
+    });
+    return res.map((obj) => {
+      obj.table_name = tableName;
+      obj.unique = tableName + '_' + obj.symbol + '_' + obj.currency_base;
+      return obj;
+    });
+  }
+
+  public async getCryptoCurrencySymbolTasks(): Promise<
+    db_rsp_cryptocurrencytask[]
+  > {
+    const tableName = 'cryptocurrency';
+    const res: any = await this.prisma[tableName].findMany({
+      select: {
+        id: true,
+        symbol: true,
+        currency_base: true,
+        latest_date: true,
+        oldest_date: true,
+        ishistorydatafinished: true,
+      },
+    });
+
+    return res.map((obj) => {
+      obj.table_name = tableName;
+      obj.unique = tableName + '_' + obj.symbol + '_' + obj.currency_base;
       return obj;
     });
   }
@@ -215,7 +337,6 @@ export class RmdbService {
   public async bulkInsertStocks(inputs: rsp_stocks[]): Promise<any> {
     const currentTime = new Date();
     const data = inputs.map((d) => {
-
       let global = 'Basic';
       let plan = 'Basic';
       if (d.access != undefined) {

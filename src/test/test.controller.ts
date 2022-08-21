@@ -3,6 +3,7 @@ import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.servi
 import * as mongoose from 'mongoose';
 import { util } from '../util/util';
 import { InjectConnection } from '@nestjs/mongoose';
+import { rsp_timeseries } from '../dto/third_party/twelve_data/data';
 
 interface TestData {
   name: string;
@@ -15,6 +16,23 @@ export class TestController {
     @InjectConnection() private readonly connection: mongoose.Connection,
   ) {}
   logger = new Logger(TestController.name);
+
+  @Get('testtimeseries')
+  async time() {
+    const rsp: rsp_timeseries = await this.twelveDataService.testFunc(
+      'AAPL',
+      '1920-01-01',
+      '1920-03-03',
+    );
+    console.log(rsp);
+
+    if (rsp['status'] != 'ok') {
+      console.log(rsp['message']);
+      return rsp.message;
+    }
+    console.log(rsp['values']);
+    return rsp['values'];
+  }
 
   @Get('test1')
   async test1() {

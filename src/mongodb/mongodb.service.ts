@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose';
 import settings from 'src/config';
 
 import { InjectConnection } from '@nestjs/mongoose';
-import { db_timeseries } from 'src/dto/database/timeseries';
+import { db_rsp_timeserise } from 'src/dto/database/dbresponse';
 
 @Injectable()
 export class MongodbService {
@@ -43,7 +43,7 @@ export class MongodbService {
   // indices_<symbol>_<country>
   public async bulkInsertTimeSeries(
     collectionName: string,
-    data: db_timeseries[],
+    data: db_rsp_timeserise[],
   ): Promise<void> {
     await this.client.collection(collectionName).insertMany(data);
     if (!this.collections.has(collectionName)) {
@@ -53,7 +53,7 @@ export class MongodbService {
 
   public async insertTimeSeries(
     collectionName: string,
-    data: db_timeseries,
+    data: db_rsp_timeserise,
   ): Promise<void> {
     await this.client.collection(collectionName).insertOne(data);
     if (!this.collections.has(collectionName)) {

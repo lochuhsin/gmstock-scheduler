@@ -3,16 +3,6 @@ export class plan_base {
   plan: string;
 }
 
-export class trade_detail_base {
-  symbol: string;
-  interval: string;
-  currency: string;
-  exchange_timezone: string;
-  exchange: string;
-  mic_code: string;
-  type: string;
-}
-
 export class rsp_stocks {
   symbol: string;
   name: string;
@@ -54,4 +44,20 @@ export class rsp_indices {
   country: string;
   currency: string;
   access: plan_base;
+}
+
+export interface timeseries {
+  datetime: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+}
+
+export interface rsp_timeseries {
+  meta: object;
+  message: string | null;
+  values: timeseries[];
+  status: string;
 }

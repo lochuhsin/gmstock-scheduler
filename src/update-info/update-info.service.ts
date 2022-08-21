@@ -1,6 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { util } from '../util/util';
-import { db_rsp_symboltask } from '../dto/database/dbresponse';
+import {
+  db_rsp_cryptocurrencytask,
+  db_rsp_forexpairtask,
+  db_rsp_etftask,
+  db_rsp_indicetask,
+  db_rsp_stocktask,
+  db_rsp_timeserise,
+} from '../dto/database/dbresponse';
 import settings from '../config';
 import { RmdbService } from 'src/rmdb/rmdb.service';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
@@ -11,42 +18,42 @@ import {
   rsp_cryptocurrency,
   rsp_etf,
   rsp_indices,
+  timeseries,
 } from 'src/dto/third_party/twelve_data/data';
 
-enum TaskType {
+enum QueueType {
   daily,
   update,
   history,
 }
 
+type taskType =
+  | db_rsp_stocktask
+  | db_rsp_forexpairtask
+  | db_rsp_cryptocurrencytask
+  | db_rsp_etftask
+  | db_rsp_indicetask;
+
 @Injectable()
 export class UpdateInfoService {
   private readonly waitTime = 1000; // ms
   private readonly logger = new Logger(UpdateInfoService.name);
-  private readonly updateTaskQue: util.queue<db_rsp_symboltask>;
-  private readonly dailyTaskQue: util.queue<db_rsp_symboltask>;
-  private readonly historyTaskQue: util.queue<db_rsp_symboltask>;
-  private readonly errorTaskQue: util.queue<[db_rsp_symboltask, TaskType]>;
+  private readonly updateTaskQue: util.queue<taskType>;
+  private readonly dailyTaskQue: util.queue<taskType>;
+  private readonly historyTaskQue: util.queue<taskType>;
+  private readonly errorTaskQue: util.queue<[taskType, QueueType]>;
 
   private leftAPICount = 0;
-  private readonly historyInterval = settings.api['historyInterval']; //day
-
-  private readonly tableList = [
-    'stocks',
-    'forexpair',
-    'cryptocurrency',
-    'etf',
-    'indices',
-  ];
+  private readonly historyInterval = settings.api.historyInterval;
 
   constructor(
     private readonly twelveDataService: TwelveDataService,
     private readonly rmdbService: RmdbService,
     private readonly mongodbService: MongodbService,
   ) {
-    this.historyTaskQue = new util.queue<db_rsp_symboltask>();
-    this.dailyTaskQue = new util.queue<db_rsp_symboltask>();
-    this.updateTaskQue = new util.queue<db_rsp_symboltask>();
+    this.historyTaskQue = new util.queue<taskType>();
+    this.dailyTaskQue = new util.queue<taskType>();
+    this.updateTaskQue = new util.queue<taskType>();
   }
 
   public getSymbolTaskCount() {
@@ -58,7 +65,7 @@ export class UpdateInfoService {
   }
 
   public initApiCount(): void {
-    this.leftAPICount = settings.api['apicount'];
+    this.leftAPICount = settings.api.apicount;
   }
 
   public async initSymbolTasks(): Promise<void> {
@@ -155,7 +162,7 @@ export class UpdateInfoService {
       `running history task queue, task amount: ${this.historyTaskQue.getSize()}`,
     );
 
-    const task: db_rsp_symboltask = this.historyTaskQue.pop();
+    const task: taskType = this.historyTaskQue.pop();
     const endDate = task.oldest_date;
     const copyDate = new Date(endDate.valueOf());
     copyDate.setDate(copyDate.getDate() - this.historyInterval);
@@ -163,7 +170,7 @@ export class UpdateInfoService {
     const endDateString = util.convertDateToDateString(endDate);
     const startDateString = util.convertDateToDateString(copyDate);
 
-    let result: string[][] | null;
+    let result: timeseries[] | string;
     try {
       result = await this.twelveDataService.timeSeries(
         task.symbol,
@@ -172,24 +179,39 @@ export class UpdateInfoService {
       );
     } catch (e) {
       this.logger.warn(`task failed with error: ${e}`);
-      this.errorTaskQue.push([task, TaskType.history]);
+      this.errorTaskQue.push([task, QueueType.history]);
       return null;
     }
 
-    if (result == null) {
-      await this.rmdbService.updateIsHistoryDataFinished(
-        task.table_name,
-        task.id,
-        true,
-      );
+    if (typeof result == 'string') {
+      if (
+        result ==
+        'No data is available on the specified dates. Try setting different start/end dates.'
+      ) {
+        await this.rmdbService.updateIsHistoryDataFinished(
+          task.table_name,
+          task.id,
+          true,
+        );
+      } else {
+        this.logger.warn(`history task failed with error: ${result}`);
+        this.errorTaskQue.push([task, QueueType.history]);
+      }
+      return null;
     } else {
-      result.shift();
-      result.map((obj) => {
-        obj.unshift(task.symbol);
-        return obj;
-      });
-      await this.rmdbService.bulkInsertTableData(task.table_name, result);
-      const oldestDate: Date = new Date(result[result.length - 1][1]);
+      const timeseries: db_rsp_timeserise[] = [];
+      for (const obj of result) {
+        timeseries.push({
+          datetime: new Date(obj.datetime),
+          open: Number(obj.open),
+          high: Number(obj.high),
+          low: Number(obj.low),
+          close: Number(obj.close),
+          volume: Number(obj.volume),
+        });
+      }
+      await this.mongodbService.bulkInsertTimeSeries(task.unique, timeseries);
+      const oldestDate: Date = new Date(result[result.length - 1].datetime);
       await this.rmdbService.updateOldestDate(
         task.table_name,
         task.id,
@@ -203,8 +225,8 @@ export class UpdateInfoService {
     this.logger.log(
       `running update task queue, task amount: ${this.updateTaskQue.getSize()}`,
     );
-    const task: db_rsp_symboltask = this.updateTaskQue.pop();
-    let result: string[][];
+    const task: taskType = this.updateTaskQue.pop();
+    let result: timeseries[] | string;
     try {
       const endDate = util.convertDateToDateString(new Date());
       const startDate = util.convertDateToDateString(task.latest_date);
@@ -215,71 +237,107 @@ export class UpdateInfoService {
         endDate,
       );
     } catch (e) {
-      this.logger.warn(
-        `Symbol ${task.symbol} update failed, error ${e.message}`,
-      );
-      this.errorTaskQue.push([task, TaskType.update]);
+      this.logger.warn(`update task failed with error: ${result}`);
+      this.errorTaskQue.push([task, QueueType.update]);
       return null;
     }
-
-    if (result != null) {
-      result.shift(); // remove the first element since it is column name
-      result.map((obj) => {
-        obj.unshift(task.symbol);
-        return obj;
-      });
-
-      await this.rmdbService.bulkInsertTableData(task.table_name, result);
-      const latestDate = new Date(result[0][1]);
+    if (typeof result == 'string') {
+      if (
+        result ==
+        'No data is available on the specified dates. Try setting different start/end dates.'
+      ) {
+        await this.rmdbService.updateIsHistoryDataFinished(
+          task.table_name,
+          task.id,
+          true,
+        );
+      } else {
+        this.logger.warn(`update task failed with error: ${result}`);
+        this.errorTaskQue.push([task, QueueType.history]);
+      }
+      return null;
+    } else {
+      const timeseries: db_rsp_timeserise[] = [];
+      for (const obj of result) {
+        timeseries.push({
+          datetime: new Date(obj.datetime),
+          open: Number(obj.open),
+          high: Number(obj.high),
+          low: Number(obj.low),
+          close: Number(obj.close),
+          volume: Number(obj.volume),
+        });
+      }
+      await this.mongodbService.bulkInsertTimeSeries(task.unique, timeseries);
+      const latestDate = new Date(result[0].datetime);
       await this.rmdbService.updateLatestDate(
         task.table_name,
         task.id,
         latestDate,
       );
     }
-    this.logger.log(`Update data update at ${new Date()}`);
+    this.logger.log(`update data update at ${new Date()}`);
   }
 
   private async runDaily() {
     this.logger.log(
       `running daily task queue, task amount: ${this.dailyTaskQue.getSize()}`,
     );
-    const task: db_rsp_symboltask = this.dailyTaskQue.pop();
+    const task: taskType = this.dailyTaskQue.pop();
     const symbol = task.symbol;
-    let result: string[] | null;
+    let result: timeseries;
     try {
       result = await this.twelveDataService.latest(symbol);
     } catch (e) {
       this.logger.warn(`Symbol ${symbol} update failed`);
-      this.errorTaskQue.push([task, TaskType.daily]);
+      this.errorTaskQue.push([task, QueueType.daily]);
     }
     if (result != null) {
-      result.unshift(task.symbol);
-      const latestDate = new Date(result[1]);
+      const latestDate = new Date(result.datetime);
       await this.rmdbService.updateLatestDate(
         task.table_name,
         task.id,
         latestDate,
       );
-      await this.rmdbService.insertTableData(task.table_name, result);
+      const res: db_rsp_timeserise = {
+        datetime: new Date(result.datetime),
+        open: Number(result.open),
+        high: Number(result.high),
+        low: Number(result.low),
+        close: Number(result.close),
+        volume: Number(result.volume),
+      };
+      await this.mongodbService.insertTimeSeries(task.unique, res);
     }
     this.logger.log(`Daily data update at ${new Date()}`);
   }
 
   private async fillSymbolTasks() {
-    for (const table_name of this.tableList) {
-      const result: db_rsp_symboltask[] = await this.rmdbService.getSymbolTask(
-        table_name,
-      );
-      for (const obj of result) {
+    const stocksTasks: db_rsp_stocktask[] =
+      await this.rmdbService.getStockSymbolTasks();
+    const forexpairTasks: db_rsp_forexpairtask[] =
+      await this.rmdbService.getForexPairSymbolTasks();
+    const cryptoTasks: db_rsp_cryptocurrencytask[] =
+      await this.rmdbService.getCryptoCurrencySymbolTasks();
+    const etfTasks: db_rsp_etftask[] =
+      await this.rmdbService.getETFSymbolTasks();
+    const indicesTasks: db_rsp_indicetask[] =
+      await this.rmdbService.getIndiceSymbolTasks();
+
+    for (const tasks of [
+      stocksTasks,
+      forexpairTasks,
+      cryptoTasks,
+      etfTasks,
+      indicesTasks,
+    ]) {
+      for (const obj of tasks) {
         if (!obj.ishistorydatafinished) {
           this.historyTaskQue.push(obj);
         }
-
         if (!UpdateInfoService.isUpdated(obj.latest_date)) {
           this.updateTaskQue.push(obj);
         }
-
         this.dailyTaskQue.push(obj);
       }
     }
