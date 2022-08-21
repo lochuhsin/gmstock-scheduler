@@ -6,9 +6,9 @@ const settings = {
       'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyMi0wNi0yMyAyMDoxNzowMyIsInVzZXJfaWQiOiJsb2NodWhzaW4iLCJpcCI6IjExNC4xMzYuNTguMTE1In0.tWMyITWi1PXdSGZGFuE_RcrUKtLYcsrP3DHgnlhZ6oc',
     twelveData: 'b0a59586047a49ac8b9cff87709499d7',
   },
-    server: {
-      port: 3000,
-    },
+  server: {
+    port: 3000,
+  },
   postgres: {
     user: 'root',
     password: 'root',
@@ -18,6 +18,7 @@ const settings = {
   },
   mongodb: {
     mongoConn: 'mongodb://root:root@mongo:27017',
+    database: 'TimeSeries',
   },
 };
 

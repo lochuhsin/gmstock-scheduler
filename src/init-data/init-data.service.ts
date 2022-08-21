@@ -1,30 +1,49 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Client } from 'pg';
 import settings from 'src/config';
+import { MongodbService } from 'src/mongodb/mongodb.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { RmdbService } from 'src/rmdb/rmdb.service';
 import { util } from 'src/util/util';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
 import { HttpService } from '@nestjs/axios';
+import * as mongoose from 'mongoose';
+import { InjectConnection } from '@nestjs/mongoose';
 
 @Injectable()
 export class initDataService implements OnModuleInit {
   logger = new Logger(initDataService.name);
 
+  constructor(
+    @InjectConnection() private readonly connection: mongoose.Connection,
+  ) {}
+
   async onModuleInit(): Promise<void> {
-    this.logger.log('start checking db');
+    this.logger.log('start checking postgres db');
     await this.testDBConnection();
 
     this.logger.log('start filling symbols');
     await this.fillSymbol();
 
+    this.logger.log('start checking mongodb database existence');
+    await this.checkMongoDatabase();
+
     this.logger.log(`The module has been initialized.`);
+  }
+  private async checkMongoDatabase(): Promise<void> {
+    const mongoService = new MongodbService(this.connection);
+    await mongoService.initCollections();
+    if (!mongoService.isDataBaseExist()) {
+      this.logger.log('TimeSeries database not exist, creating one');
+      await mongoService.createInitDatabase();
+    }
+    this.logger.log('Mongo check complete');
   }
 
   /**
    * filled up with initial data list
    */
-  async fillSymbol(): Promise<void> {
+  private async fillSymbol(): Promise<void> {
     this.logger.log(`start filling init symbols`);
     const waitTime = 1000; // ms
     const rmdbService = new RmdbService(new PrismaService());

@@ -4,6 +4,10 @@ import * as mongoose from 'mongoose';
 import { util } from '../util/util';
 import { InjectConnection } from '@nestjs/mongoose';
 
+interface TestData {
+  name: string;
+}
+
 @Controller('test')
 export class TestController {
   constructor(
@@ -31,7 +35,24 @@ export class TestController {
   }
 
   @Get('dbtest')
-  test() {
-    this.connection.useDb('test').collection('test').insertOne({ abc: 123 });
+  async test() {
+    await this.connection
+      .useDb('test')
+      .collection('test')
+      .insertOne({ abc: 123 });
+    const client = this.connection.useDb('test');
+    await client
+      .collection('hello world collection')
+      .insertOne({ abcde: 13245 });
+    const res = await client.db.listCollections().toArray();
+    for (const obj of res) {
+      console.log(obj.name);
+    }
+  }
+
+  @Get('dbtest2')
+  async test2() {
+    const t: TestData = { name: 'interface' };
+    await this.connection.useDb('test').collection('test222').insertOne(t);
   }
 }

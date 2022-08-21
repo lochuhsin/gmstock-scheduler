@@ -4,6 +4,7 @@ import { db_rsp_symboltask } from '../dto/database/dbresponse';
 import settings from '../config';
 import { RmdbService } from 'src/rmdb/rmdb.service';
 import { TwelveDataService } from 'src/third-party/twelve-data/twelve-data.service';
+import { MongodbService } from 'src/mongodb/mongodb.service';
 import {
   rsp_stocks,
   rsp_forexpair,
@@ -41,6 +42,7 @@ export class UpdateInfoService {
   constructor(
     private readonly twelveDataService: TwelveDataService,
     private readonly rmdbService: RmdbService,
+    private readonly mongodbService: MongodbService,
   ) {
     this.historyTaskQue = new util.queue<db_rsp_symboltask>();
     this.dailyTaskQue = new util.queue<db_rsp_symboltask>();

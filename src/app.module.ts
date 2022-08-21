@@ -10,6 +10,7 @@ import { InitDataModule } from './init-data/init-data.module';
 import { ThirdPartyModule } from './third-party/third-party.module';
 import { UpdateInfoModule } from './update-info/update-info.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { MongodbModule } from './mongodb/mongodb.module';
 import settings from './config';
 
 @Module({
@@ -24,6 +25,7 @@ import settings from './config';
     RmdbModule,
     ThirdPartyModule,
     UpdateInfoModule,
+    MongodbModule,
   ],
   controllers: [AppController, TestController],
   providers: [AppService, TestService],
