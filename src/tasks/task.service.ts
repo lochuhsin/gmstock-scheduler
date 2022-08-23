@@ -20,7 +20,7 @@ export class TasksService {
     this.logger.log('Symbol tasks initialized');
   }
 
-  @Cron('*/2 * * * * *')
+  @Cron('0-54 * * * * *')
   async runTasks(): Promise<void> {
     await this.updateService.runSymbolTasks();
   }

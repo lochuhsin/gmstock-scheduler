@@ -4,7 +4,7 @@ export interface db_rsp_stocktask {
   mic_code: string;
   latest_date: Date;
   oldest_date: Date;
-  ishistorydatafinished: string;
+  ishistorydatafinished: boolean;
   table_name: string;
   unique: string;
 }
@@ -15,7 +15,7 @@ export interface db_rsp_forexpairtask {
   currency_base: string;
   latest_date: Date;
   oldest_date: Date;
-  ishistorydatafinished: string;
+  ishistorydatafinished: boolean;
   table_name: string;
   unique: string;
 }
@@ -26,7 +26,7 @@ export interface db_rsp_cryptocurrencytask {
   currency_base: string;
   latest_date: Date;
   oldest_date: Date;
-  ishistorydatafinished: string;
+  ishistorydatafinished: boolean;
   table_name: string;
   unique: string;
 }
@@ -37,7 +37,7 @@ export interface db_rsp_etftask {
   mic_code: string;
   latest_date: Date;
   oldest_date: Date;
-  ishistorydatafinished: string;
+  ishistorydatafinished: boolean;
   table_name: string;
   unique: string;
 }
@@ -48,7 +48,7 @@ export interface db_rsp_indicetask {
   country: string;
   latest_date: Date;
   oldest_date: Date;
-  ishistorydatafinished: string;
+  ishistorydatafinished: boolean;
   table_name: string;
   unique: string;
 }

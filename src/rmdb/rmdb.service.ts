@@ -476,53 +476,6 @@ export class RmdbService {
       .catch((d) => this.logger.error(d));
   }
 
-  // input data format : symbol, datetime, open, high, low, close, volume
-  async bulkInsertTableData(
-    tableName: string,
-    data: string[][],
-  ): Promise<void> {
-    const dataTableName = tableName + 'data';
-    const dataUniqueSet: Set<string> = new Set();
-    const cleanData: string[][] = [];
-
-    for (const d of data) {
-      const unique = [d[0], d[1]].join('_');
-
-      if (!dataUniqueSet.has(unique)) {
-        dataUniqueSet.add(unique);
-        cleanData.push(d);
-      }
-    }
-
-    const query = format(
-      `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
-      cleanData,
-    );
-    this.client.query(query, (err, _) => {
-      if (err) {
-        this.logger.log(err);
-      }
-    });
-  }
-
-  // input data format : symbol, datetime, open, high, low, close, volume
-  public async insertTableData(
-    tableName: string,
-    data: string[],
-  ): Promise<void> {
-    const dataTableName = tableName + 'data';
-    const d = [data];
-    const query = format(
-      `INSERT INTO ${dataTableName} (symbol, record_date_time, open, high, low, close, volume) VALUES %L`,
-      d,
-    );
-    this.client.query(query, (err, _) => {
-      if (err) {
-        this.logger.log(err);
-      }
-    });
-  }
-
   private static createUnique<T>(obj: T, properties: string[]): string {
     const propList: string[] = [];
     for (const prop of properties) {

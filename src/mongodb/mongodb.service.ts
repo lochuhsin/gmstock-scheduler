@@ -35,6 +35,10 @@ export class MongodbService {
     }
   }
 
+  public getCollectionCount(): number {
+    return this.collections.size;
+  }
+
   // collection name rule
   // stock_<symbol>_<mic_code>
   // forexpair_<symbol>_<currency_base>

@@ -69,6 +69,9 @@ export class UpdateInfoService {
   }
 
   public async initSymbolTasks(): Promise<void> {
+    this.historyTaskQue.clear();
+    this.dailyTaskQue.clear();
+    this.updateTaskQue.clear();
     await this.fillSymbolTasks();
     this.logger.log(`Init Symbol Tasks at ${new Date()}`);
   }
@@ -172,9 +175,68 @@ export class UpdateInfoService {
     }
   }
 
+  private async updateTimeSeries(
+    task: taskType,
+    startDateString,
+    endDateString,
+    queueType: QueueType,
+  ): Promise<db_rsp_timeserise[] | null> {
+    let result: timeseries[] | string;
+    try {
+      result = await this.twelveDataService.timeSeries(
+        task.symbol,
+        startDateString,
+        endDateString,
+      );
+    } catch (e) {
+      this.logger.warn(
+        `task type: ${queueType}, unique: ${task.unique} failed with error: ${e}`,
+      );
+      this.errorTaskQue.push([task, queueType]);
+      return null;
+    }
+
+    if (typeof result == 'string') {
+      if (
+        result ==
+        'No data is available on the specified dates. Try setting different start/end dates.'
+      ) {
+        this.logger.log(
+          `task type: ${queueType}, unique: ${task.unique} finished`,
+        );
+        await this.rmdbService.updateIsHistoryDataFinished(
+          task.table_name,
+          task.id,
+          true,
+        );
+      } else {
+        this.logger.warn(
+          `task type: ${queueType}, unique: ${task.unique} failed with error: ${result}`,
+        );
+        this.errorTaskQue.push([task, QueueType.history]);
+      }
+      return null;
+    }
+    const timeseries: db_rsp_timeserise[] = [];
+    for (const obj of result) {
+      timeseries.push({
+        datetime: new Date(obj.datetime),
+        open: Number(obj.open),
+        high: Number(obj.high),
+        low: Number(obj.low),
+        close: Number(obj.close),
+        volume: Number(obj.volume),
+      });
+    }
+    await this.mongodbService.bulkInsertTimeSeries(task.unique, timeseries);
+    return timeseries;
+  }
+
   private async runHistory(): Promise<void> {
     this.logger.log(
-      `running history task queue, task amount: ${this.historyTaskQue.getSize()}`,
+      `running ${
+        QueueType.history
+      } task queue, task amount: ${this.historyTaskQue.getSize()}`,
     );
 
     const task: taskType = this.historyTaskQue.pop();
@@ -184,113 +246,45 @@ export class UpdateInfoService {
 
     const endDateString = util.convertDateToDateString(endDate);
     const startDateString = util.convertDateToDateString(copyDate);
-
-    let result: timeseries[] | string;
-    try {
-      result = await this.twelveDataService.timeSeries(
-        task.symbol,
-        startDateString,
-        endDateString,
-      );
-    } catch (e) {
-      this.logger.warn(`task failed with error: ${e}`);
-      this.errorTaskQue.push([task, QueueType.history]);
-      return null;
-    }
-
-    if (typeof result == 'string') {
-      if (
-        result ==
-        'No data is available on the specified dates. Try setting different start/end dates.'
-      ) {
-        await this.rmdbService.updateIsHistoryDataFinished(
-          task.table_name,
-          task.id,
-          true,
-        );
-      } else {
-        this.logger.warn(`history task failed with error: ${result}`);
-        this.errorTaskQue.push([task, QueueType.history]);
-      }
-      return null;
-    } else {
-      const timeseries: db_rsp_timeserise[] = [];
-      for (const obj of result) {
-        timeseries.push({
-          datetime: new Date(obj.datetime),
-          open: Number(obj.open),
-          high: Number(obj.high),
-          low: Number(obj.low),
-          close: Number(obj.close),
-          volume: Number(obj.volume),
-        });
-      }
-      await this.mongodbService.bulkInsertTimeSeries(task.unique, timeseries);
-      const oldestDate: Date = new Date(result[result.length - 1].datetime);
-      await this.rmdbService.updateOldestDate(
-        task.table_name,
-        task.id,
-        oldestDate,
-      );
-    }
-    this.logger.log(`history data update at ${new Date()}`);
+    const rsp = await this.updateTimeSeries(
+      task,
+      startDateString,
+      endDateString,
+      QueueType.history,
+    );
+    if (rsp == null) return;
+    const oldestDate: Date = new Date(rsp[rsp.length - 1].datetime);
+    await this.rmdbService.updateOldestDate(
+      task.table_name,
+      task.id,
+      oldestDate,
+    );
+    this.logger.log(`${QueueType.history} data update at ${new Date()}`);
   }
 
   private async runUpdate() {
     this.logger.log(
-      `running update task queue, task amount: ${this.updateTaskQue.getSize()}`,
+      `running ${
+        QueueType.update
+      } task queue, task amount: ${this.updateTaskQue.getSize()}`,
     );
     const task: taskType = this.updateTaskQue.pop();
-    let result: timeseries[] | string;
-    try {
-      const endDate = util.convertDateToDateString(new Date());
-      const startDate = util.convertDateToDateString(task.latest_date);
+    const endDate = util.convertDateToDateString(new Date());
+    const startDate = util.convertDateToDateString(task.latest_date);
+    const rsp = await this.updateTimeSeries(
+      task,
+      startDate,
+      endDate,
+      QueueType.update,
+    );
 
-      result = await this.twelveDataService.timeSeries(
-        task.symbol,
-        startDate,
-        endDate,
-      );
-    } catch (e) {
-      this.logger.warn(`update task failed with error: ${result}`);
-      this.errorTaskQue.push([task, QueueType.update]);
-      return null;
-    }
-    if (typeof result == 'string') {
-      if (
-        result ==
-        'No data is available on the specified dates. Try setting different start/end dates.'
-      ) {
-        await this.rmdbService.updateIsHistoryDataFinished(
-          task.table_name,
-          task.id,
-          true,
-        );
-      } else {
-        this.logger.warn(`update task failed with error: ${result}`);
-        this.errorTaskQue.push([task, QueueType.history]);
-      }
-      return null;
-    } else {
-      const timeseries: db_rsp_timeserise[] = [];
-      for (const obj of result) {
-        timeseries.push({
-          datetime: new Date(obj.datetime),
-          open: Number(obj.open),
-          high: Number(obj.high),
-          low: Number(obj.low),
-          close: Number(obj.close),
-          volume: Number(obj.volume),
-        });
-      }
-      await this.mongodbService.bulkInsertTimeSeries(task.unique, timeseries);
-      const latestDate = new Date(result[0].datetime);
-      await this.rmdbService.updateLatestDate(
-        task.table_name,
-        task.id,
-        latestDate,
-      );
-    }
+    if (rsp == null) return;
+    const latestDate = new Date(rsp[0].datetime);
+    await this.rmdbService.updateLatestDate(
+      task.table_name,
+      task.id,
+      latestDate,
+    );
     this.logger.log(`update data update at ${new Date()}`);
   }
 

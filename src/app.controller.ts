@@ -1,16 +1,28 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UpdateInfoService } from 'src/update-info/update-info.service';
+import { MongodbService } from 'src/mongodb/mongodb.service';
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly updateService: UpdateInfoService,
+    private readonly mongodbService: MongodbService,
   ) {}
 
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Post('initCollections')
+  async initCollections(): Promise<void> {
+    await this.mongodbService.initCollections();
+  }
+
+  @Get('collectionCount')
+  async getCollectionCount(): Promise<number> {
+    return this.mongodbService.getCollectionCount();
   }
 
   @Get('triggerDailySymbolTaskInit')
