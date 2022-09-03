@@ -4,7 +4,7 @@ const settings = {
   token: {
     finMind:
       'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRlIjoiMjAyMi0wNi0yMyAyMDoxNzowMyIsInVzZXJfaWQiOiJsb2NodWhzaW4iLCJpcCI6IjExNC4xMzYuNTguMTE1In0.tWMyITWi1PXdSGZGFuE_RcrUKtLYcsrP3DHgnlhZ6oc',
-    twelveData: '',
+    twelveData: '1f9c52b0eb734f6386c918b7e5743ea9',
   },
   server: {
     port: 3000,

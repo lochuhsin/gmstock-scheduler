@@ -2,6 +2,8 @@ import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UpdateInfoService } from 'src/update-info/update-info.service';
 import { MongodbService } from 'src/mongodb/mongodb.service';
+import settings from './config';
+
 @Controller()
 export class AppController {
   constructor(
@@ -10,7 +12,7 @@ export class AppController {
     private readonly mongodbService: MongodbService,
   ) {}
 
-  @Get()
+  @Get('/')
   getHello(): string {
     return this.appService.getHello();
   }
@@ -62,5 +64,10 @@ export class AppController {
   @Post('clearTaskQue')
   postClearTaskQue(): object {
     return this.updateService.clearTaskQueue();
+  }
+
+  @Get('twelveDataInfo')
+  getTwelveDataInfo(): object {
+    return settings.twelveData;
   }
 }

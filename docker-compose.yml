@@ -43,4 +43,3 @@ services:
 networks:
   grandma-scheduler:
     driver: bridge
-
