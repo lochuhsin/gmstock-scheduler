@@ -7,7 +7,6 @@ import {
   rsp_etf,
   rsp_indices,
 } from 'src/dto/third_party/twelve_data/data';
-const format = require('pg-format');
 import settings from '../config';
 import {
   db_rsp_cryptocurrencytask,

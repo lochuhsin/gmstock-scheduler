@@ -64,8 +64,4 @@ export class MongodbService {
       this.collections.add(collectionName);
     }
   }
-
-  public getAllCollections(): string[] {
-    return [...this.collections.values()];
-  }
 }
