@@ -15,9 +15,7 @@ import settings from './config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      settings.mongodb.mongoConn,
-    ),
+    MongooseModule.forRoot(settings.mongodb.mongoConn),
     ScheduleModule.forRoot(),
     TasksModule,
     InitDataModule,
