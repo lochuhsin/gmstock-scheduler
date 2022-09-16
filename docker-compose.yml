@@ -8,10 +8,13 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5432:5432"
     networks:
       - grandma-scheduler
+    volumes:
+      - gm_postgres_data:/var/lib/postgresql/data
 
   scheduler:
     restart: always
@@ -38,8 +41,14 @@ services:
     networks:
       - grandma-scheduler
     volumes:
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+      - gm_mongo_data:/data/db
 
 networks:
   grandma-scheduler:
     driver: bridge
+
+
+volumes:
+  gm_postgres_data:
+  gm_mongo_data:
+    driver: local
