@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.9'
 
 services:
 
@@ -30,18 +30,20 @@ services:
       - .:/usr/src/app
 
   mongo:
-    image: mongo
+    image: mongo:6.0.1
     restart: always
+    hostname: mongo
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-      MONGO_INITDB_DATABASE: TimeSeries
+      MONGO_REPLICA_HOST: mongo
+      MONGO_REPLICA_PORT: 27017
     ports:
       - "27017:27017"
     networks:
       - grandma-scheduler
     volumes:
+      - .:/usr/src/app
       - gm_mongo_data:/data/db
+    command: bash -c "/usr/bin/mongod --replSet rs0 --bind_ip_all"
 
 networks:
   grandma-scheduler:

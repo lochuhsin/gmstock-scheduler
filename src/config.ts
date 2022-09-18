@@ -17,7 +17,7 @@ const settings = {
     port: 5432,
   },
   mongodb: {
-    mongoConn: 'mongodb://root:root@mongo:27017',
+    mongoConn: 'mongodb://mongo:27017/?replicaSet=rs0',
     database: 'TimeSeries',
   },
 };
