@@ -95,16 +95,17 @@ export class TwelveDataService {
     return rsp.data;
   }
 
-  // https://twelvedata.com/docs#time-series
-  // symbol: database symbol column
-  // startDate, endDate format: '2000-01-01' or '2000-01-01 12:60:60'
-  async timeSeries(
-    symbol: string,
+  private static paramSelector(
+    unique: string,
     startDate: string,
     endDate: string,
-  ): Promise<timeseries[] | string> {
-    const url = 'https://api.twelvedata.com/time_series';
-    const params = {
+  ): object {
+    const unpack: string[] = unique.split('_');
+    const table = unpack[0];
+    const symbol = unpack[1];
+    const variable = unpack[2];
+
+    const param: any = {
       apikey: settings.token['twelveData'],
       symbol: symbol,
       interval: '1day',
@@ -113,6 +114,28 @@ export class TwelveDataService {
       timezone: 'utc',
       format: 'json',
     };
+
+    if (table == 'stocks' || table == 'etf') {
+      param.mic_code = variable;
+    } else if (table == 'forexpair' || table == 'cryptocurrency') {
+      param.currency_base = variable;
+    } else if (table == 'indices') {
+      param.country = variable;
+    }
+
+    return param;
+  }
+
+  // https://twelvedata.com/docs#time-series
+  // symbol: database symbol column
+  // startDate, endDate format: '2000-01-01' or '2000-01-01 12:60:60'
+  async timeSeries(
+    unique: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<timeseries[] | string> {
+    const url = 'https://api.twelvedata.com/time_series';
+    const params = TwelveDataService.paramSelector(unique, startDate, endDate);
     const rsp = await this.httpService.axiosRef.get(url, {
       params: params,
     });

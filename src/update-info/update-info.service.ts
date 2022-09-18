@@ -182,9 +182,10 @@ export class UpdateInfoService {
     queueType: QueueType,
   ): Promise<db_rsp_timeserise[] | null> {
     let result: timeseries[] | string;
+
     try {
       result = await this.twelveDataService.timeSeries(
-        task.symbol,
+        task.unique,
         startDateString,
         endDateString,
       );
