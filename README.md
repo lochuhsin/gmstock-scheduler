@@ -4,6 +4,7 @@
 For first time setting up:
 ```
 docker-compose up --build
+yarn add prisma
 docker exec -it gmstock-scheduler_mongo_1 bash
 
 # go inside mongodb shell
